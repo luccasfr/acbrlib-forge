@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { OFFICIAL_ACBR_URL, ROOT } from "./lock.ts";
 import { verifyOutput } from "./manifest.ts";
-import { approvedBuilds, TARGETS } from "./review.ts";
+import { approvedBuilds, RELEASE_TARGETS, TARGETS } from "./review.ts";
 
 export function sourceLink(value: string): string {
   const url = URL.parse(value);
@@ -30,6 +30,8 @@ export function stageTarget(input: string, output: string, target: (typeof TARGE
 }
 
 function packageTarget(target: string, input: string): void {
+  if (!RELEASE_TARGETS.some((item) => item === target))
+    throw new Error(`${target} não faz parte dos alvos publicados: ${RELEASE_TARGETS.join(", ")}.`);
   const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { version: string };
   const tag = process.env.ACBRLIB_RELEASE_TAG;
   if (tag !== `v${version}` || !/^v\d+\.\d+\.\d+$/.test(tag))
@@ -76,8 +78,9 @@ function packageTarget(target: string, input: string): void {
 if (import.meta.main) {
   const [target, input] = process.argv.slice(2);
   try {
-    if (!target || !input) throw new Error("Uso: bun src/release-package.ts <alvo> <saída-do-build>");
-    packageTarget(target, resolve(input));
+    if (target === "--targets" && !input) console.log(RELEASE_TARGETS.join(" "));
+    else if (!target || !input) throw new Error("Uso: bun src/release-package.ts <alvo> <saída-do-build> | --targets");
+    else packageTarget(target, resolve(input));
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;

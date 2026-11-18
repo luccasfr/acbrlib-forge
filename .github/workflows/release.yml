@@ -54,6 +54,8 @@ jobs:
     permissions:
       contents: read
       actions: read
+    outputs:
+      targets: ${{ steps.package.outputs.targets }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -68,15 +70,18 @@ jobs:
           pattern: build-*
           path: candidates
       - name: Conferir e empacotar os binários aprovados
+        id: package
         env:
           ACBRLIB_RELEASE_TAG: ${{ github.ref_name }}
           ACBRLIB_CORRESPONDING_SOURCE_URL: ${{ vars.ACBRLIB_CORRESPONDING_SOURCE_URL }}
           ACBRLIB_CANDIDATE_KEY: ${{ secrets.ACBRLIB_CANDIDATE_KEY }}
         run: |
-          for target in linux-x86_64 windows-x86_64 macos-aarch64 macos-x86_64; do
+          targets=$(bun src/release-package.ts --targets)
+          for target in $targets; do
             bun src/candidate.ts open "$target" "candidates/build-$target/bundle.enc" "transport/$target" --approved
             bun src/release-package.ts "$target" "transport/$target/out"
           done
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-archives
@@ -93,6 +98,7 @@ jobs:
     env:
       TAG: ${{ github.ref_name }}
       REVISION: ${{ needs.preflight.outputs.revision }}
+      TARGETS: ${{ needs.package.outputs.targets }}
       APPROVED_COMMIT: ${{ github.sha }}
       GH_REPO: ${{ github.repository }}
     steps:
@@ -108,9 +114,11 @@ jobs:
         working-directory: dist
         run: |
           shopt -s nullglob
+          read -ra targets <<< "$TARGETS"
           archives=(*.tar.gz)
-          test "${#archives[@]}" -eq 4
-          for target in linux-x86_64 windows-x86_64 macos-aarch64 macos-x86_64; do
+          test "${#targets[@]}" -gt 0
+          test "${#archives[@]}" -eq "${#targets[@]}"
+          for target in "${targets[@]}"; do
             test -s "acbrlib-forge-$TAG-$target.tar.gz"
           done
           sha256sum -- "${archives[@]}" > SHA256SUMS
@@ -133,8 +141,13 @@ jobs:
           ACBrLib ConsoleMT compilada da revisão SVN r$REVISION.
 
           Módulos incluídos: $modules.
+          Alvos publicados: ${TARGETS// /, }.
           Selecione a arquitetura correspondente ao seu sistema. O pacote inclui
-          dependências, schemas da NF-e, manifesto e informações dos fontes.
+          dependências, schemas da NF-e, manifesto, licenças e informações dos fontes.
+
+          O Windows x64 passa na matriz nativa, mas não é distribuído enquanto a
+          procedência das DLLs prontas do SVN não for comprovada. Compile-o com
+          \`bun run forge build\` a partir do clone.
 
           Confira o hash do arquivo baixado em SHA256SUMS.
           EOF
