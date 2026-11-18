@@ -4,7 +4,7 @@ Execute `bun install --frozen-lockfile`, `bun run check` e `bun run test`. Se a 
 
 ## Pull requests
 
-- A `main` só recebe alterações por pull request, com o check `check` aprovado e commits assinados.
+- A `main` só recebe alterações por pull request, com o check `check` aprovado. Assine os commits com SSH; o commit de aprovação precisa ser assinado por uma chave de `approvers`.
 - As PRs são mescladas com **merge commit**, para preservar a assinatura dos commits de aprovação.
 - Use mensagens no formato [Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/), por exemplo `fix(macos): …`, `docs: …` ou `chore(acbr): approve r48681`.
 

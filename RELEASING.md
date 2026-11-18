@@ -31,7 +31,7 @@ Nos dois casos, execute a matriz novamente e reaprove a mesma revisão antes da 
 
 ## 2. Aprovar a revisão
 
-A `main` é protegida: exige o check `check`, commits assinados e alterações por pull request, inclusive para administradores. Mescle as PRs com **merge commit**. Squash e rebase recriam os commits sem a assinatura do aprovador, e a verificação passaria a recusar o lock.
+A `main` é protegida: exige pull request e o check `check`, inclusive para administradores. Mescle as PRs com **merge commit**. Squash e rebase recriam os commits sem a assinatura do aprovador, e a verificação passaria a recusar o lock. A assinatura que vale para a aprovação é a conferida pelo Forge contra `approvers`, independentemente do selo "Verified" do GitHub.
 
 1. Atualize a versão em `package.json` e mescle na `main` a receita que será publicada.
 2. Em **Actions → Validate ACBrLib**, execute o workflow manualmente na `main`, informando a revisão do SVN. Anote o ID da execução quando os quatro alvos passarem.
