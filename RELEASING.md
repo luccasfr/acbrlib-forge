@@ -23,7 +23,7 @@ O Forge compara revisão, receita, patches, commit de origem e SHA-256 do artefa
 
 ## 3. Preparar a distribuição e revisar o rascunho
 
-Confira os termos dos binários, dependências, schemas e patches nos [avisos de terceiros](THIRD_PARTY_NOTICES.md). Disponibilize os fontes correspondentes e registre a revisão em **Settings → Secrets and variables → Actions → Variables** com `ACBRLIB_DISTRIBUTION_REVIEWED=true` e `ACBRLIB_CORRESPONDING_SOURCE_URL`. A URL HTTPS pública deve apontar para os fontes da revisão publicada ou para um índice que os identifique.
+Confira os termos dos binários, dependências, schemas e patches nos [avisos de terceiros](THIRD_PARTY_NOTICES.md). Registre os avisos e textos de licença aplicáveis em `LICENSES/`. Disponibilize os fontes correspondentes e registre a revisão em **Settings → Secrets and variables → Actions → Variables** com `ACBRLIB_DISTRIBUTION_REVIEWED=true` e `ACBRLIB_CORRESPONDING_SOURCE_URL`. A URL HTTPS pública deve apontar para os fontes da revisão publicada ou para um índice que os identifique.
 
 Envie o commit de aprovação à branch `main`. Crie a tag no commit aprovado, com a mesma versão de `package.json`:
 

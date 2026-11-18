@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { OFFICIAL_ACBR_URL, ROOT } from "./lock.ts";
@@ -45,6 +45,8 @@ function packageTarget(target: string, input: string): void {
   try {
     stageTarget(input, join(scratch, "out"), evidence.target);
     copyFileSync(join(ROOT, "THIRD_PARTY_NOTICES.md"), join(scratch, "THIRD_PARTY_NOTICES.md"));
+    copyFileSync(join(ROOT, "LICENSE"), join(scratch, "LICENSE"));
+    cpSync(join(ROOT, "LICENSES"), join(scratch, "LICENSES"), { recursive: true });
     writeFileSync(join(scratch, "SOURCES.md"), [
       "# Fontes correspondentes", "",
       `- Revisão SVN do ACBr: \`r${evidence.revision}\``,
@@ -55,7 +57,9 @@ function packageTarget(target: string, input: string): void {
     const dist = join(ROOT, "dist");
     mkdirSync(dist, { recursive: true });
     const archive = join(dist, `acbrlib-forge-${tag}-${target}.tar.gz`);
-    const result = spawnSync("tar", ["-czf", archive, "-C", scratch, "out", "SOURCES.md", "THIRD_PARTY_NOTICES.md"], {
+    const result = spawnSync("tar", [
+      "-czf", archive, "-C", scratch, "out", "SOURCES.md", "THIRD_PARTY_NOTICES.md", "LICENSE", "LICENSES",
+    ], {
       stdio: "inherit",
       windowsHide: true,
     });
