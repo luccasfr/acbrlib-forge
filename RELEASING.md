@@ -11,7 +11,7 @@ Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-parti
 | Linux x64 | Sim | Sim |
 | macOS Apple Silicon | Sim | Sim |
 | macOS Intel | Sim | Sim |
-| Windows x64 | Sim | Não, veja [Windows](#windows) |
+| Windows x64 | Sim | Sim |
 
 A lista de alvos publicados fica em `RELEASE_TARGETS`, em [`src/review.ts`](src/review.ts). O workflow lê a lista dali e recusa pacotes de outros alvos.
 
@@ -74,11 +74,18 @@ Para verificar a procedência de um arquivo publicado:
 gh attestation verify <arquivo.tar.gz> --repo luccasfr/acbrlib-forge
 ```
 
-## Windows
+## Dependências do Windows
 
-O build do Windows copia DLLs prontas do SVN do ACBr. Na r48681, `DLLs/LibXml2/x64` vem da r18175, de 09/11/2019, e a `libiconv.dll` declara a versão 1.14, com SHA-256 `ad91da10c5e497c75bf27a7e145973c31a193e2cb225480856a88822e4985bbd`. Os builds 1.14 do arquivo público do libxml2 têm hashes diferentes, então não há fontes comprovados para essa DLL. [Revisão r18175 no SVN](https://sourceforge.net/p/acbr/code/18175/) · [Arquivo de builds do libxml2](https://xmlsoft.org/ftp/xml/win32/64bit/)
+O pacote do Windows não usa as DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DLLs/LibXml2`), cuja origem não é verificável: a `libiconv.dll` da r18175, por exemplo, não confere com nenhum build público. O estágio `windows-runtime` do [`docker/Dockerfile`](docker/Dockerfile) compila OpenSSL, libiconv e libxml2 com mingw-w64, a partir dos tarballs oficiais, e o build recusa o pacote quando:
 
-Para publicar o Windows, gere libxml2 e libiconv a partir de fontes fixados na imagem Docker, com mingw-w64, ou obtenha os fontes e a receita exatos das DLLs atuais. Depois disso, inclua `windows-x86_64` em `RELEASE_TARGETS`, registre as licenças em `LICENSES/` e repita a matriz e a aprovação.
+- uma DLL importa algo que não é do Windows nem do próprio pacote;
+- a `libxml2.dll` não exporta alguma função que o ACBr da revisão carrega por `GetProcAddress`.
+
+Para atualizar uma dependência:
+
+1. Troque a versão e o SHA-256 no `Dockerfile`. Confira o hash com o publicado pelo projeto; no caso da libiconv, valide a assinatura GPG do tarball com o [keyring do GNU](https://ftp.gnu.org/gnu/gnu-keyring.gpg).
+2. Mantenha o OpenSSL na série 3.x: a ACBrLib procura `libcrypto-3-x64.dll` e `libssl-3-x64.dll`.
+3. Atualize os textos em `LICENSES/` se a licença mudar e repita a matriz e a aprovação.
 
 ## Validação entre releases
 

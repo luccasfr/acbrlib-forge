@@ -25,7 +25,7 @@ flowchart LR
 
 | Quero… | Comece aqui |
 | --- | --- |
-| Usar uma biblioteca compilada | Baixe o pacote do seu sistema em [Releases](https://github.com/luccasfr/acbrlib-forge/releases) (Linux x64 e macOS). |
+| Usar uma biblioteca compilada | Baixe o pacote do seu sistema em [Releases](https://github.com/luccasfr/acbrlib-forge/releases) (Windows x64, Linux x64 e macOS). |
 | Compilar no meu computador | Siga [Compilar a partir dos fontes](#compilar-a-partir-dos-fontes). |
 | Avaliar uma atualização do ACBr | Use [Revisar uma candidata](#revisar-uma-candidata). |
 | Aprovar uma revisão e preparar um release | Siga o [guia de release](RELEASING.md). |
@@ -44,7 +44,7 @@ bun run forge build
 | Alvo | Compilação | Teste de carga | Em Releases |
 | --- | --- | --- | --- |
 | Linux x64 | Docker | No contêiner | Sim |
-| Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows | Não ([motivo](RELEASING.md#windows)) |
+| Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows | Sim |
 | macOS Apple Silicon | Lazarus/FPC nativo | No macOS arm64 | Sim |
 | macOS Intel | Lazarus/FPC nativo | No macOS x64 | Sim |
 
@@ -77,7 +77,7 @@ out/
 └── schemas/NFe/       schemas para validação de XML
 ```
 
-Configure o seu aplicativo para carregar a biblioteca da arquitetura correspondente e preserve as dependências do pacote ao lado dela. No Linux, OpenSSL 3 e libxml2 vêm do sistema. O macOS usa a libxml2 do sistema e inclui OpenSSL no pacote.
+Configure o seu aplicativo para carregar a biblioteca da arquitetura correspondente e preserve as dependências do pacote ao lado dela. No Windows, o pacote leva OpenSSL 3, libxml2 e libiconv compilados pelo Forge a partir dos fontes oficiais. No Linux, OpenSSL 3 e libxml2 vêm do sistema. O macOS usa a libxml2 do sistema e inclui OpenSSL no pacote.
 
 Cada pacote de release é um `.tar.gz` para um alvo. Extraia-o com `tar -xf <arquivo.tar.gz>`. O pacote contém `out/`, o `SOURCES.md`, as licenças e os avisos de terceiros. Os [fontes correspondentes](docs/fontes-correspondentes.md) explicam como obter os fontes de cada parte. Compare o SHA-256 do arquivo baixado com o valor publicado em `SHA256SUMS`.
 

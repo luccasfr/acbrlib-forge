@@ -18,10 +18,9 @@ Os patches em `patches/shared.json` e `patches/darwin.ts` alteram arquivos do AC
 | Alvo | Arquivos de terceiros no pacote | Licença |
 | --- | --- | --- |
 | Linux x64 | Schemas da NF-e | Distribuídos pelo ACBr na revisão declarada |
+| Windows x64 | `libcrypto-3-x64.dll`, `libssl-3-x64.dll` e `legacy.dll` do OpenSSL 3; `libxml2.dll`; `libiconv-2.dll`; schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) · libxml2: [MIT](LICENSES/libxml2-MIT.txt) · libiconv: [LGPL 2.1 ou posterior](LICENSES/LGPL-2.1-or-later.txt) |
 | macOS (arm64 e x64) | `libcrypto.3.dylib`, `libssl.3.dylib` e `legacy.dylib` do OpenSSL 3, além dos schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) |
 
 No Linux, OpenSSL 3 e libxml2 vêm do sistema. No macOS, a libxml2 vem do sistema.
 
-## Windows
-
-O build do Windows usa OpenSSL, libxml2, libiconv e outras DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DLLs/LibXml2`). O Forge compila e testa esse alvo, mas não o distribui enquanto não houver fontes e receita comprovados para a `libiconv.dll`. Veja o [guia de release](RELEASING.md#windows).
+As DLLs do Windows são compiladas pelo Forge, com mingw-w64, a partir dos tarballs oficiais do OpenSSL, da libxml2 e da libiconv, fixados por SHA-256 em [`docker/Dockerfile`](docker/Dockerfile). A receita está em [`docker/windows-runtime.sh`](docker/windows-runtime.sh), e as versões ficam registradas no `manifest.json` de cada pacote.

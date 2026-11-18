@@ -2,6 +2,20 @@
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as versões seguem o [versionamento semântico](https://semver.org/lang/pt-BR/).
 
+## 0.2.0
+
+### Adicionado
+
+- Pacote do Windows x64 em Releases.
+- DLLs de runtime do Windows compiladas pelo Forge com mingw-w64 a partir dos tarballs oficiais: OpenSSL 3.5.9 (com o provider `legacy`), libxml2 2.15.4 e libiconv 1.19.1. As versões ficam em `windows-x86_64Runtime` no manifesto.
+- O build recusa DLLs com dependências fora do pacote e uma `libxml2.dll` sem alguma das funções que o ACBr carrega.
+- O teste de carga do Windows também carrega e inicializa as DLLs de runtime.
+
+### Alterado
+
+- As DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DLLs/LibXml2`) deixam de ser usadas. O pacote do Windows não leva mais `libxslt.dll` e `libexslt.dll`, que a ACBrLib não carrega, nem depende do runtime do Visual C++.
+- GitHub Actions atualizadas para as versões com Node 24.
+
 ## 0.1.0
 
 ### Adicionado
@@ -13,4 +27,4 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e a
 
 ### Limitações conhecidas
 
-- O Windows x64 é compilado e testado, mas não é publicado em Releases até que a procedência da `libiconv.dll` do SVN seja comprovada. Veja o [guia de release](RELEASING.md#windows).
+- O Windows x64 era compilado e testado, mas ficou fora de Releases porque a procedência da `libiconv.dll` do SVN não era comprovada. Resolvido na 0.2.0.
