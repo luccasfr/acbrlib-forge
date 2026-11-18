@@ -1,51 +1,85 @@
-# Preparar um release da ACBrLib Forge
+# Preparar um release do ACBrLib Forge
 
-O workflow **Prepare release** roda em uma tag `vX.Y.Z` e usa os binários da execução aprovada. O mantenedor publica o rascunho depois de revisar os arquivos e as notas.
+O workflow **Prepare release** roda numa tag `vX.Y.Z` e empacota os binários que a matriz aprovada produziu, sem recompilar. Ele cria um rascunho em **Releases**, e o mantenedor o publica depois de revisar arquivos e notas.
 
-Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-partir-dos-fontes). A matriz que gera as evidências de release usa runners padrão do GitHub, gratuitos em repositórios públicos. O workflow de release reaproveita os binários que a matriz aprovou. [Cobrança do GitHub Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-partir-dos-fontes). A matriz usa runners padrão do GitHub, gratuitos em repositórios públicos. [Cobrança do GitHub Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+
+## Alvos publicados
+
+| Alvo | Matriz nativa | Release |
+| --- | --- | --- |
+| Linux x64 | Sim | Sim |
+| macOS Apple Silicon | Sim | Sim |
+| macOS Intel | Sim | Sim |
+| Windows x64 | Sim | Não, veja [Windows](#windows) |
+
+A lista de alvos publicados fica em `RELEASE_TARGETS`, em [`src/review.ts`](src/review.ts). O workflow lê a lista dali e recusa pacotes de outros alvos.
 
 ## 1. Configurar a validação técnica
 
-- Em **Settings → Secrets and variables → Actions → Secrets**, cadastre `ACBRLIB_CANDIDATE_KEY` com 32 bytes aleatórios em hexadecimal. Gere o valor localmente, por exemplo com `openssl rand -hex 32`, e guarde-o como segredo. Mantenha a mesma chave até concluir o release.
-- O Windows recebe os binários cifrados para o teste de carga. A validação guarda somente arquivos cifrados e evidências de SHA-256. Se os artefatos expirarem ou a chave for trocada, execute a matriz e aprove a nova candidata.
-- Use o GitHub CLI autenticado na conta que mantém o repositório. Configure a assinatura SSH do Git e registre a chave pública em `approvers` no formato `allowed_signers`. O primeiro cadastro é assinado pela própria chave. Alterações posteriores exigem assinatura de um aprovador anterior.
+- Em **Settings → Secrets and variables → Actions → Secrets**, cadastre `ACBRLIB_CANDIDATE_KEY` com 32 bytes aleatórios em hexadecimal, por exemplo `openssl rand -hex 32`. Os binários da matriz são enviados cifrados com essa chave, porque artefatos de repositórios públicos podem ser baixados por qualquer pessoa.
+- Use o GitHub CLI autenticado na conta que mantém o repositório. Configure a assinatura SSH do Git e registre a chave pública em `approvers` no formato `allowed_signers`. O primeiro cadastro é assinado pela própria chave. Alterações posteriores exigem a assinatura de um aprovador anterior.
+
+### Validade da aprovação
+
+O release reaproveita os artefatos da execução aprovada, então a aprovação vale enquanto eles existirem e puderem ser decifrados:
+
+- **Expiração:** os artefatos `build-*` e `evidence-*` ficam 90 dias no GitHub, o máximo permitido. Publique a tag dentro desse prazo, contado a partir da execução registrada em `ACBR_EVIDENCE` no `acbr.lock`.
+- **Troca de chave:** trocar `ACBRLIB_CANDIDATE_KEY` invalida os artefatos já cifrados.
+
+Nos dois casos, execute a matriz novamente e reaprove a mesma revisão antes da tag.
 
 ## 2. Aprovar a revisão
 
-1. Atualize a versão de `package.json` e envie à `main` a receita que será publicada. No GitHub Actions, execute manualmente **Validate ACBrLib** nessa branch, passando a revisão do SVN.
-2. Confira os resultados de Linux x64, Windows x64, macOS Apple Silicon e macOS Intel. Anote o ID da execução.
-3. No clone com histórico Git completo, execute os comandos abaixo. A interface `bun run forge review` também permite selecionar a revisão e informar o ID.
+A `main` é protegida: exige o check `check`, commits assinados e alterações por pull request, inclusive para administradores. Mescle as PRs com **merge commit**. Squash e rebase recriam os commits sem a assinatura do aprovador, e a verificação passaria a recusar o lock.
+
+1. Atualize a versão em `package.json` e mescle na `main` a receita que será publicada.
+2. Em **Actions → Validate ACBrLib**, execute o workflow manualmente na `main`, informando a revisão do SVN. Anote o ID da execução quando os quatro alvos passarem.
+3. Numa branch criada a partir da `main`, com histórico completo:
+
+   ```sh
+   bun run forge approve 48681 --run <id-da-execucao>
+   bun run forge verify
+   ```
+
+   O Forge compara revisão, receita, patches, commit de origem e SHA-256 do artefato de cada alvo. Depois grava `approved-builds.json`, o hash dele no `acbr.lock` e um relatório em `changes/`, num commit assinado. A interface `bun run forge review` faz o mesmo de forma guiada.
+4. Abra a PR da aprovação e mescle-a com merge commit.
+
+Para voltar a uma revisão anterior, repita o fluxo com essa revisão. Qualquer alteração na receita depois da validação exige uma nova execução.
+
+## 3. Publicar a distribuição
+
+Em **Settings → Secrets and variables → Actions → Variables**, mantenha:
+
+| Variável | Valor |
+| --- | --- |
+| `ACBRLIB_DISTRIBUTION_REVIEWED` | `true` depois de conferir os [avisos de terceiros](THIRD_PARTY_NOTICES.md) dos alvos publicados |
+| `ACBRLIB_CORRESPONDING_SOURCE_URL` | `https://github.com/luccasfr/acbrlib-forge/blob/main/docs/fontes-correspondentes.md` |
+
+Crie uma tag anotada e assinada no merge commit da aprovação, com a mesma versão do `package.json`:
 
 ```sh
-bun run forge approve 48681 --run <id-da-execucao>
-bun run forge verify
-```
-
-O Forge compara revisão, receita, patches, commit de origem e SHA-256 do artefato por alvo. O commit assinado registra o inventário em `approved-builds.json` e seu hash em `acbr.lock`. Para reaprovar ou voltar, execute o mesmo fluxo com a revisão nas evidências novas. Alterações na receita após a validação exigem uma nova execução.
-
-## 3. Preparar a distribuição e revisar o rascunho
-
-Confira os termos dos binários, dependências, schemas e patches nos [avisos de terceiros](THIRD_PARTY_NOTICES.md). Registre os avisos e textos de licença aplicáveis em `LICENSES/`. Disponibilize os fontes correspondentes e registre a revisão em **Settings → Secrets and variables → Actions → Variables** com `ACBRLIB_DISTRIBUTION_REVIEWED=true` e `ACBRLIB_CORRESPONDING_SOURCE_URL`. A URL HTTPS pública deve apontar para os fontes da revisão publicada ou para um índice que os identifique.
-
-Na r48681, o SVN fornece DLLs Windows prontas em `DLLs/LibXml2/x64`. O histórico aponta para a r18175, de 09/11/2019. A `libiconv.dll` declara a versão 1.14, com SHA-256 `ad91da10c5e497c75bf27a7e145973c31a193e2cb225480856a88822e4985bbd`. Os builds 1.14 do arquivo público do libxml2 têm hashes diferentes. A revisão de redistribuição precisa dos fontes e da receita da DLL usada. Outra opção é gerar a dependência a partir de fontes conhecidos e repetir a matriz. [Revisão r18175 no SVN](https://sourceforge.net/p/acbr/code/18175/) · [Arquivo de builds do libxml2](https://xmlsoft.org/ftp/xml/win32/64bit/)
-
-Envie o commit de aprovação à branch `main`. Crie a tag no commit aprovado, com a mesma versão de `package.json`:
-
-```sh
-git tag -a v0.1.0 -m "ACBrLib Forge v0.1.0"
+git switch main && git pull
+git tag -s v0.1.0 -m "ACBrLib Forge v0.1.0"
 git push origin v0.1.0
 ```
 
-O workflow confere tag, assinatura e condições de distribuição. Depois baixa a execução aprovada, confere o hash de cada arquivo antes de extraí-lo e empacota os mesmos binários em quatro arquivos `.tar.gz`. O rascunho inclui `SHA256SUMS` e atestações do empacotamento. O manifesto identifica o commit que originou os binários e a toolchain usada.
+O workflow confere tag, aprovação assinada e configuração da distribuição. Em seguida baixa os artefatos aprovados, confere o SHA-256 de cada um antes de extraí-lo e empacota um `.tar.gz` por alvo publicado. O rascunho inclui `SHA256SUMS` e atestações de procedência.
 
-Em **Releases**, confira os quatro arquivos, o `SHA256SUMS` e as notas antes de publicar o rascunho. Se o envio falhar depois de criar o rascunho, inspecione os assets existentes antes de repetir o envio. O workflow preserva releases existentes.
+Confira em **Releases** os arquivos, o `SHA256SUMS` e as notas, e publique o rascunho. Se o envio falhar depois de o rascunho ser criado, inspecione os assets existentes antes de repetir; o workflow não sobrescreve releases.
 
-Para verificar a procedência de um arquivo já publicado:
+Para verificar a procedência de um arquivo publicado:
 
 ```sh
 gh attestation verify <arquivo.tar.gz> --repo luccasfr/acbrlib-forge
 ```
 
+## Windows
+
+O build do Windows copia DLLs prontas do SVN do ACBr. Na r48681, `DLLs/LibXml2/x64` vem da r18175, de 09/11/2019, e a `libiconv.dll` declara a versão 1.14, com SHA-256 `ad91da10c5e497c75bf27a7e145973c31a193e2cb225480856a88822e4985bbd`. Os builds 1.14 do arquivo público do libxml2 têm hashes diferentes, então não há fontes comprovados para essa DLL. [Revisão r18175 no SVN](https://sourceforge.net/p/acbr/code/18175/) · [Arquivo de builds do libxml2](https://xmlsoft.org/ftp/xml/win32/64bit/)
+
+Para publicar o Windows, gere libxml2 e libiconv a partir de fontes fixados na imagem Docker, com mingw-w64, ou obtenha os fontes e a receita exatos das DLLs atuais. Depois disso, inclua `windows-x86_64` em `RELEASE_TARGETS`, registre as licenças em `LICENSES/` e repita a matriz e a aprovação.
+
 ## Validação entre releases
 
-PRs e atualizações em `main` executam typecheck e testes. PRs que alteram a receita também compilam em Docker. O envio dos binários cifrados fica no disparo manual da matriz a partir de `main`. O envio público fica no fluxo de release.
+PRs e commits na `main` executam typecheck e testes. PRs que alteram a receita (`src/`, `scripts/`, `docker/`, `patches/`, `modules.json` e workflows) também compilam em Docker. A matriz com os binários cifrados roda só no disparo manual a partir da `main`.
