@@ -1,5 +1,31 @@
 # Compila a ACBrLib (variante ConsoleMT, sem GUI) para Linux x86_64 e, por
 # compilação cruzada, Windows x86_64. macOS não é coberto por esta imagem.
+
+# DLLs de runtime do Windows (OpenSSL, libiconv e libxml2), compiladas com
+# mingw-w64 a partir dos tarballs oficiais. Os SHA-256 conferem com os
+# publicados pelo OpenSSL e pelo GNOME; o tarball da libiconv foi conferido
+# pela assinatura GPG do mantenedor (Bruno Haible, E0FFBD975397F77A).
+FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc AS windows-runtime
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    OPENSSL_VERSION=3.5.9 \
+    OPENSSL_SHA256=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a \
+    LIBICONV_VERSION=1.19.1 \
+    LIBICONV_SHA256=9a06844846d664d7122161700c10a64480d7c7bcead3091925a785b38c91edab \
+    LIBXML2_VERSION=2.15.4 \
+    LIBXML2_SHA256=98087fd181d9070724f3fbc65c7377db03038eb92bd882374daff44940138821
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates curl make perl xz-utils pkgconf \
+        gcc-mingw-w64-x86-64-win32=12.2.0-14+deb12u1+25.2+b1 \
+        binutils-mingw-w64-x86-64=2.40-2+10.4 \
+        mingw-w64-x86-64-dev=10.0.0-3 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY docker/windows-runtime.sh /opt/windows-runtime.sh
+RUN bash /opt/windows-runtime.sh
+
 FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -43,6 +69,7 @@ RUN curl -fsSL -o /tmp/lazarus.tar.gz \
         || (tail -50 /tmp/lazbuild.log; exit 1)) \
     && rm /tmp/lazbuild.log
 
+COPY --from=windows-runtime /opt/windows-runtime /opt/windows-runtime
 COPY docker/build.sh docker/patches.py scripts/smoke.py /opt/acbrlib/
 RUN chmod +x /opt/acbrlib/build.sh
 

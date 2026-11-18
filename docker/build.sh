@@ -46,7 +46,8 @@ svn_retry update --quiet -r "$ACBR_REV" --set-depth infinity \
 python3 /opt/acbrlib/patches.py "$ACBR_HOME" "$PATCHES"
 
 # A NFe valida o XML contra os schemas e, no Windows, carrega OpenSSL e
-# libxml2 da pasta da biblioteca: ambos saem da mesma revisão do ACBr.
+# libxml2 da pasta da biblioteca. Essas DLLs são compiladas dos fontes
+# oficiais na imagem (docker/windows-runtime.sh), não copiadas do SVN.
 svn_export() {
   local attempt
   for attempt in 1 2 3 4 5 6; do
@@ -62,8 +63,16 @@ case " $ACBR_MODULES " in
     case " $ACBR_TARGETS " in
       *" windows-x86_64 "*)
         mkdir -p "$OUT/windows-x86_64"
-        svn_export DLLs/OpenSSL/3.1.3/x64 "$OUT/windows-x86_64"
-        svn_export DLLs/LibXml2/x64 "$OUT/windows-x86_64"
+        cp /opt/windows-runtime/*.dll "$OUT/windows-x86_64/"
+        # Toda função que a ACBrLib busca por GetProcAddress na libxml2
+        # precisa estar exportada pela DLL compilada.
+        exports=$(objdump -p /opt/windows-runtime/libxml2.dll \
+          | sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' | awk '{print $NF}')
+        required=$(grep -oE "GetProcAddr[A-Za-z]*\([^,]+, *'[A-Za-z0-9_]+'" \
+          "$ACBR_HOME/Fontes/ACBrLibXML2/ACBrLibXml2Ext.pas" | grep -oE "'[A-Za-z0-9_]+'" | tr -d "'" | sort -u)
+        [ -n "$required" ] || { echo "nenhuma função da libxml2 encontrada no ACBr" >&2; exit 1; }
+        missing=$(comm -23 <(echo "$required") <(echo "$exports" | sort -u))
+        [ -z "$missing" ] || { echo "libxml2.dll não exporta: $missing" >&2; exit 1; }
         ;;
     esac
     ;;
@@ -109,6 +118,9 @@ done
   echo "  \"patches\": \"$(sha256sum "$PATCHES" | cut -d' ' -f1)\","
   echo "  \"fpc\": \"$(fpc -iV)\","
   echo "  \"lazarus\": \"$("$LAZARUS_DIR/lazbuild" --version | tail -1)\","
+  case " $ACBR_TARGETS " in
+    *" windows-x86_64 "*) echo "  \"windows-x86_64Runtime\": $(cat /opt/windows-runtime/versions.json)," ;;
+  esac
   echo "  \"variant\": \"ConsoleMT\","
   echo "  \"files\": ["
   (IFS=$'\n'; echo "${entries[*]}" | sed '$!s/$/,/')

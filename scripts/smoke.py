@@ -40,6 +40,33 @@ def check(path: str, prefix: str) -> str | None:
     return None
 
 
+def check_windows_runtime(directory: str) -> int:
+    """Carrega as DLLs de terceiros do pacote e chama uma função de cada biblioteca."""
+    failures = 0
+    for name in sorted(os.listdir(directory)):
+        if not name.lower().endswith(".dll") or name.lower().startswith("acbr"):
+            continue
+        try:
+            lib = ctypes.CDLL(os.path.join(directory, name))
+        except OSError as error:
+            print(f"FALHA {name}: não carregou: {error}")
+            failures += 1
+            continue
+        detail = ""
+        if name.lower().startswith("libcrypto"):
+            lib.OpenSSL_version.restype = ctypes.c_char_p
+            detail = f" ({lib.OpenSSL_version(0).decode()})"
+        elif name.lower() == "libxml2.dll":
+            lib.xmlInitParser()
+            try:
+                version = ctypes.c_char_p.in_dll(lib, "xmlParserVersion").value
+            except ValueError:
+                version = None
+            detail = f" (libxml2 {version.decode() if version else 'inicializada'})"
+        print(f"ok {name}{detail}")
+    return failures
+
+
 def main() -> int:
     out, target = os.path.abspath(sys.argv[1]), sys.argv[2]
     machine = platform.machine().lower()
@@ -54,6 +81,8 @@ def main() -> int:
     dlls = os.add_dll_directory(os.path.join(out, target)) if sys.platform == "win32" else nullcontext()
     failures = 0
     with dlls:
+        if sys.platform == "win32":
+            failures += check_windows_runtime(os.path.join(out, target))
         for entry in entries:
             error = check(os.path.join(out, entry["file"]), entry["prefix"])
             if error:

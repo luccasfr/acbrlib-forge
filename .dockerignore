@@ -5,3 +5,4 @@
 !docker/patches.py
 !scripts/
 !scripts/smoke.py
+!docker/windows-runtime.sh
