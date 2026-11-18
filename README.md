@@ -7,6 +7,8 @@ Compile a ACBrLib ConsoleMT a partir de uma revisão do SVN oficial do ACBr, com
 
 Projeto independente para os [fontes públicos do Projeto ACBr](https://projetoacbr.com.br/fontes/).
 
+A r48681 passou na matriz dos quatro alvos e tem aprovação assinada. [Resultado da matriz](https://github.com/luccasfr/acbrlib-forge/actions/runs/44365366311) · [Aprovação da r48681](changes/r48681-r48681-ci44365366311.md)
+
 ## Por que existe
 
 Integradores precisam saber exatamente qual revisão da ACBrLib está em uso e quais binários foram testados. O Forge liga a revisão e a receita de build aos arquivos que chegam ao release.
