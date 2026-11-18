@@ -2,6 +2,8 @@
 
 O workflow **Prepare release** roda em uma tag `vX.Y.Z` e usa os binários da execução aprovada. O mantenedor publica o rascunho depois de revisar os arquivos e as notas.
 
+Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-partir-dos-fontes). A matriz que gera as evidências de release usa runners padrão do GitHub, gratuitos em repositórios públicos. O workflow de release reaproveita os binários que a matriz aprovou. [Cobrança do GitHub Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+
 ## 1. Configurar a validação técnica
 
 - Em **Settings → Secrets and variables → Actions → Secrets**, cadastre `ACBRLIB_CANDIDATE_KEY` com 32 bytes aleatórios em hexadecimal. Gere o valor localmente, por exemplo com `openssl rand -hex 32`, e guarde-o como segredo. Mantenha a mesma chave até concluir o release.
@@ -24,6 +26,8 @@ O Forge compara revisão, receita, patches, commit de origem e SHA-256 do artefa
 ## 3. Preparar a distribuição e revisar o rascunho
 
 Confira os termos dos binários, dependências, schemas e patches nos [avisos de terceiros](THIRD_PARTY_NOTICES.md). Registre os avisos e textos de licença aplicáveis em `LICENSES/`. Disponibilize os fontes correspondentes e registre a revisão em **Settings → Secrets and variables → Actions → Variables** com `ACBRLIB_DISTRIBUTION_REVIEWED=true` e `ACBRLIB_CORRESPONDING_SOURCE_URL`. A URL HTTPS pública deve apontar para os fontes da revisão publicada ou para um índice que os identifique.
+
+Na r48681, o SVN fornece DLLs Windows prontas em `DLLs/LibXml2/x64`. A versão gravada em `libiconv.dll` é 1.14, mas o diretório não identifica os fontes e a receita que produziram esse arquivo. Os binários 1.14 no arquivo público do libxml2 têm hashes diferentes. Para concluir a revisão de redistribuição, identifique os fontes correspondentes junto ao mantenedor da DLL ou compile a dependência a partir de fontes conhecidos e repita a matriz. [Histórico do diretório no SVN](https://sourceforge.net/p/acbr/code/HEAD/tree/trunk2/DLLs/LibXml2/x64/) · [Arquivo de builds do libxml2](https://xmlsoft.org/ftp/xml/win32/64bit/)
 
 Envie o commit de aprovação à branch `main`. Crie a tag no commit aprovado, com a mesma versão de `package.json`:
 
