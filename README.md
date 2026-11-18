@@ -88,6 +88,8 @@ bun run forge review 48681
 
 O primeiro comando abre o navegador de revisões do SVN no terminal. O segundo compila a revisão indicada em `out-candidate/`, preservando a saída regular e a aprovação registrada. A aprovação exige a matriz de testes e um commit assinado com SSH. Consulte o [guia de release](RELEASING.md) para aprovar, reaprovar ou voltar a uma revisão anterior.
 
+![Histórico real de revisões do SVN exibido pelo ACBrLib Forge no terminal](docs/revisoes-tui.png)
+
 ## Contribuição e licenças
 
 A receita original foi criada por Lucas Ferreira. O código original do Forge usa a [licença MIT](LICENSE). Os trechos e patches de terceiros seguem os termos indicados nos [avisos de terceiros](THIRD_PARTY_NOTICES.md). Veja também o [guia de contribuição](CONTRIBUTING.md).
