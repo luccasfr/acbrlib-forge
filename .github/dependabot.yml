@@ -4,3 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # Os workflows fazem parte da receita: cada atualização exige uma nova
+    # matriz e reaprovação, então todas chegam juntas numa só PR.
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
