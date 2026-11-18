@@ -1,0 +1,10 @@
+[
+  {
+    "id": "console-ansi-encoding",
+    "upstream": "r48487",
+    "reason": "A r48487 trocou GetConsoleTextEncoding por GetDefaultTextEncoding em GetSysANSIencoding para FPC NOGUI. Na ACBrLib ConsoleMT, a troca corrompe caracteres acentuados ao processar o INI da NFC-e. O patch restaura a escolha anterior para FPC NOGUI.",
+    "file": "Fontes/ACBrComum/ACBrUtil.Strings.pas",
+    "from": "function GetSysANSIencoding: String;\r\nbegin\r\n  Result := GetDefaultTextEncoding;\r\n",
+    "to": "function GetSysANSIencoding: String;\r\nbegin\r\n  Result := {$IfDef NOGUI}GetConsoleTextEncoding{$Else}GetDefaultTextEncoding{$EndIf};\r\n"
+  }
+]

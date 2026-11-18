@@ -1,0 +1,143 @@
+name: Prepare release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forge-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    outputs:
+      revision: ${{ steps.approval.outputs.revision }}
+      run: ${{ steps.approval.outputs.run }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+      - name: Check tag and distribution
+        env:
+          TAG: ${{ github.ref_name }}
+          DISTRIBUTION_REVIEWED: ${{ vars.ACBRLIB_DISTRIBUTION_REVIEWED }}
+          ACBRLIB_CORRESPONDING_SOURCE_URL: ${{ vars.ACBRLIB_CORRESPONDING_SOURCE_URL }}
+        run: |
+          test "$DISTRIBUTION_REVIEWED" = true || {
+            echo "::error::Review binary redistribution and set ACBRLIB_DISTRIBUTION_REVIEWED=true."
+            exit 1
+          }
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$TAG" = "v$(jq -er .version package.json)"
+          git merge-base --is-ancestor HEAD refs/remotes/origin/main
+          bun -e 'import { sourceLink } from "./src/release-package.ts"; sourceLink(process.env.ACBRLIB_CORRESPONDING_SOURCE_URL ?? "");'
+      - name: Verify signed revision approval
+        id: approval
+        run: |
+          approval=$(bun cli.ts verify)
+          revision=$(jq -er .revision <<< "$approval")
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          run=$(bun -e 'import { readLock } from "./src/lock.ts"; console.log(readLock().evidence);')
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: preflight
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.2'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.preflight.outputs.run }}
+          pattern: build-*
+          path: candidates
+      - name: Conferir e empacotar os binários aprovados
+        env:
+          ACBRLIB_RELEASE_TAG: ${{ github.ref_name }}
+          ACBRLIB_CORRESPONDING_SOURCE_URL: ${{ vars.ACBRLIB_CORRESPONDING_SOURCE_URL }}
+          ACBRLIB_CANDIDATE_KEY: ${{ secrets.ACBRLIB_CANDIDATE_KEY }}
+        run: |
+          for target in linux-x86_64 windows-x86_64 macos-aarch64 macos-x86_64; do
+            bun src/candidate.ts open "$target" "candidates/build-$target/bundle.enc" "transport/$target" --approved
+            bun src/release-package.ts "$target" "transport/$target/out"
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-archives
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  draft:
+    needs: [preflight, package]
+    runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    env:
+      TAG: ${{ github.ref_name }}
+      REVISION: ${{ needs.preflight.outputs.revision }}
+      APPROVED_COMMIT: ${{ github.sha }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-archives
+          path: dist
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: source
+          persist-credentials: false
+      - name: Verify archive set and record checksums
+        working-directory: dist
+        run: |
+          shopt -s nullglob
+          archives=(*.tar.gz)
+          test "${#archives[@]}" -eq 4
+          for target in linux-x86_64 windows-x86_64 macos-aarch64 macos-x86_64; do
+            test -s "acbrlib-forge-$TAG-$target.tar.gz"
+          done
+          sha256sum -- "${archives[@]}" > SHA256SUMS
+      - name: Attest release archives
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+      - name: Create GitHub Release draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Resolve annotated and lightweight tags to the commit actually built.
+          refs=$(git ls-remote "https://github.com/$GH_REPO.git" "refs/tags/$TAG" "refs/tags/$TAG^{}")
+          tag_commit=$(awk -v ref="refs/tags/$TAG" '$2 == ref {base=$1} $2 == ref "^{}" {peeled=$1} END {print peeled ? peeled : base}' <<< "$refs")
+          test "$tag_commit" = "$APPROVED_COMMIT"
+          modules=$(jq -er 'join(", ")' source/modules.json)
+          cat > release-notes.md <<EOF
+          ACBrLib ConsoleMT compilada da revisão SVN r$REVISION.
+
+          Módulos incluídos: $modules.
+          Selecione a arquitetura correspondente ao seu sistema. O pacote inclui
+          dependências, schemas da NF-e, manifesto e informações dos fontes.
+
+          Confira o hash do arquivo baixado em SHA256SUMS.
+          EOF
+          gh release create "$TAG" dist/*.tar.gz dist/SHA256SUMS \
+            --draft --verify-tag --title "ACBrLib Forge $TAG · ACBr r$REVISION" \
+            --notes-file release-notes.md

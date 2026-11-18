@@ -1,0 +1,6 @@
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.py text eol=lf
+*.lock text eol=lf
+patches/** text eol=lf
+approved-builds.json text eol=lf

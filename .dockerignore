@@ -1,0 +1,7 @@
+**
+!docker/
+!docker/Dockerfile
+!docker/build.sh
+!docker/patches.py
+!scripts/
+!scripts/smoke.py

@@ -1,0 +1,16 @@
+name: Novo alvo ou módulo
+description: Proponha uma plataforma de build ou um módulo da ACBrLib.
+body:
+  - type: input
+    id: target
+    attributes:
+      label: Arquitetura, sistema operacional e módulo
+    validations:
+      required: true
+  - type: textarea
+    id: build
+    attributes:
+      label: Compilação e teste de carga
+      description: Informe a revisão do SVN, a toolchain, o projeto ConsoleMT e o resultado do teste de carga, se houver.
+    validations:
+      required: true
