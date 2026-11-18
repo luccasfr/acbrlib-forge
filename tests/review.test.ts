@@ -13,5 +13,4 @@ it("nomeia o relatório pela situação da aprovação", () => {
 
 it("publica só alvos que passam na matriz nativa", () => {
   expect(RELEASE_TARGETS.every((target) => (TARGETS as readonly string[]).includes(target))).toBe(true);
-  expect(RELEASE_TARGETS).not.toContain("windows-x86_64");
 });

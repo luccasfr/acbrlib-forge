@@ -11,11 +11,10 @@ import { exec, svnRange } from "./svn.ts";
 /** Alvos compilados e testados nativamente em toda aprovação. */
 export const TARGETS = ["linux-x86_64", "windows-x86_64", "macos-aarch64", "macos-x86_64"] as const;
 /**
- * Alvos publicados em Releases. O Windows continua na matriz, mas fica fora da
- * distribuição até que a procedência da `libiconv.dll` do SVN seja comprovada
- * (veja RELEASING.md).
+ * Alvos publicados em Releases. Um alvo só entra aqui quando todas as
+ * dependências do pacote têm fontes e receita comprovados (veja RELEASING.md).
  */
-export const RELEASE_TARGETS = ["linux-x86_64", "macos-aarch64", "macos-x86_64"] as const satisfies
+export const RELEASE_TARGETS = ["linux-x86_64", "windows-x86_64", "macos-aarch64", "macos-x86_64"] as const satisfies
   readonly (typeof TARGETS)[number][];
 const REPOSITORY = "luccasfr/acbrlib-forge";
 const WORKFLOW = ".github/workflows/validate.yml";

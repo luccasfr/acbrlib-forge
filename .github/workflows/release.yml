@@ -144,10 +144,8 @@ jobs:
           Alvos publicados: ${TARGETS// /, }.
           Selecione a arquitetura correspondente ao seu sistema. O pacote inclui
           dependências, schemas da NF-e, manifesto, licenças e informações dos fontes.
-
-          O Windows x64 passa na matriz nativa, mas não é distribuído enquanto a
-          procedência das DLLs prontas do SVN não for comprovada. Compile-o com
-          \`bun run forge build\` a partir do clone.
+          As versões da toolchain e das dependências de cada alvo estão no
+          manifest.json do pacote.
 
           Confira o hash do arquivo baixado em SHA256SUMS.
           EOF
