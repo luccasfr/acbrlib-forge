@@ -1,34 +1,34 @@
 [
   {
     "target": "linux-x86_64",
-    "commit": "f68ffe374b419e11782b1d4eb8f6091da88c7230",
+    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "87ab53141439191124e79cfc7f1365e68c6dfe2e85de20db4f61b7abb40391a9",
-    "archive": "bb4c12ebbe34840d2239ac48167676464fdc5c43b5202d8efd267147124760cb"
+    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
+    "archive": "841b65da8178399f758dcacc1122488bf93792ab77535f91a87cc0ba41580a97"
   },
   {
     "target": "windows-x86_64",
-    "commit": "f68ffe374b419e11782b1d4eb8f6091da88c7230",
+    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "87ab53141439191124e79cfc7f1365e68c6dfe2e85de20db4f61b7abb40391a9",
-    "archive": "2770d9e28111a8fdc02de0ebf3b58b55c7be080f24c9d53a8b449bf7e15e95fa"
+    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
+    "archive": "d28280dac5d6e6d9533f62411d1365be8c61d476d5af6948e2840388e60865cd"
   },
   {
     "target": "macos-aarch64",
-    "commit": "f68ffe374b419e11782b1d4eb8f6091da88c7230",
+    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "87ab53141439191124e79cfc7f1365e68c6dfe2e85de20db4f61b7abb40391a9",
-    "archive": "02f66a309a24e8a8931915bb16da39df22c2bc1c4eba26ab2a2b5e14d8930a22"
+    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
+    "archive": "4d65c608e45fb382750d945e446b3f564d6388c25d1ca572d9ba0231a980b54b"
   },
   {
     "target": "macos-x86_64",
-    "commit": "f68ffe374b419e11782b1d4eb8f6091da88c7230",
+    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "87ab53141439191124e79cfc7f1365e68c6dfe2e85de20db4f61b7abb40391a9",
-    "archive": "17531ea018150c29ab6d5bd8227cc68ea235c4112c4e15009b4c87d33db60dc8"
+    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
+    "archive": "75e36abeb3babb44619d3f0f203cd46f062dc5608564abe8f09a4c929168c0ad"
   }
 ]
