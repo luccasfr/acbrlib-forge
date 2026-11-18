@@ -8,11 +8,19 @@ import { DEFAULT_MODULES, OFFICIAL_ACBR_URL, ROOT, patchesDigest, readLock, writ
 import { digest, verifyOutput } from "./manifest.ts";
 import { exec, svnRange } from "./svn.ts";
 
+/** Alvos compilados e testados nativamente em toda aprovação. */
 export const TARGETS = ["linux-x86_64", "windows-x86_64", "macos-aarch64", "macos-x86_64"] as const;
+/**
+ * Alvos publicados em Releases. O Windows continua na matriz, mas fica fora da
+ * distribuição até que a procedência da `libiconv.dll` do SVN seja comprovada
+ * (veja RELEASING.md).
+ */
+export const RELEASE_TARGETS = ["linux-x86_64", "macos-aarch64", "macos-x86_64"] as const satisfies
+  readonly (typeof TARGETS)[number][];
 const REPOSITORY = "luccasfr/acbrlib-forge";
 const WORKFLOW = ".github/workflows/validate.yml";
 const RECIPE = [".gitattributes", ".dockerignore", ".github/workflows", "src", "scripts",
-  "cli.ts", "manifest.ts", "svn.ts", "docker", "patches", "modules.json", "package.json", "bun.lock"];
+  "cli.ts", "docker", "patches", "modules.json", "package.json", "bun.lock"];
 const buildsPath = join(ROOT, "approved-builds.json");
 
 export type Evidence = {
@@ -73,6 +81,14 @@ async function gh(args: string[]): Promise<string> {
   return result.stdout;
 }
 
+/** Relatório da aprovação: primeira aprovação, reaprovação ou troca de revisão. */
+export function reportName(previous: number | undefined, revision: number, run: string): { report: string; title: string } {
+  if (previous === undefined) return { report: `changes/r${revision}-ci${run}.md`, title: `# ACBr r${revision}` };
+  if (previous === revision)
+    return { report: `changes/r${revision}-reaprovacao-ci${run}.md`, title: `# ACBr r${revision} · reaprovação` };
+  return { report: `changes/r${previous}-r${revision}-ci${run}.md`, title: `# ACBr r${previous} → r${revision}` };
+}
+
 export async function approve(revision: number, run: string, notes = ""): Promise<void> {
   if (!Number.isSafeInteger(revision) || revision <= 0 || !/^[1-9][0-9]*$/.test(run))
     throw new Error("Informe uma revisão positiva e o ID numérico da execução de CI.");
@@ -112,11 +128,11 @@ export async function approve(revision: number, run: string, notes = ""): Promis
   const current = readLock();
   const changes = revision > current.revision ? await svnRange(current.revision + 1, revision) : [];
   const directory = join(ROOT, "changes");
-  const report = `changes/r${current.revision}-r${revision}-ci${run}.md`;
+  const { report, title } = reportName(current.approvedBy ? current.revision : undefined, revision, run);
   if (existsSync(join(ROOT, report))) throw new Error("Esta execução já consta do histórico; rode a matriz novamente.");
   mkdirSync(directory, { recursive: true });
   writeFileSync(join(ROOT, report), [
-    `# ACBr r${current.revision} → r${revision}`, "",
+    title, "",
     `[Validação nativa](https://github.com/${REPOSITORY}/actions/runs/${run}) em ${TARGETS.join(", ")}.`, "",
     ...changes.filter((change) => change.relevant).map(({ revision, message }) => `- r${revision} ${message.replace(/\s+/g, " ")}`),
     "",
