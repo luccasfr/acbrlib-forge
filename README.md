@@ -7,7 +7,7 @@ Compile a ACBrLib ConsoleMT a partir de uma revisão do SVN oficial do ACBr, com
 
 Projeto independente para os [fontes públicos do Projeto ACBr](https://projetoacbr.com.br/fontes/).
 
-A r48681 passou na matriz dos quatro alvos e tem aprovação assinada. [Resultado da matriz](https://github.com/luccasfr/acbrlib-forge/actions/runs/44365366311) · [Aprovação da r48681](changes/r48681-r48681-ci44365366311.md)
+A r48681 passou na matriz dos quatro alvos e tem aprovação assinada. [Resultado da matriz](https://github.com/luccasfr/acbrlib-forge/actions/runs/44365366311) · [Aprovação da r48681](changes/r48681-ci44365366311.md)
 
 ## Por que existe
 
@@ -25,7 +25,7 @@ flowchart LR
 
 | Quero… | Comece aqui |
 | --- | --- |
-| Usar uma biblioteca compilada | Baixe o pacote do seu sistema em **Releases**, quando houver uma versão publicada. |
+| Usar uma biblioteca compilada | Baixe o pacote do seu sistema em [Releases](https://github.com/luccasfr/acbrlib-forge/releases) (Linux x64 e macOS). |
 | Compilar no meu computador | Siga [Compilar a partir dos fontes](#compilar-a-partir-dos-fontes). |
 | Avaliar uma atualização do ACBr | Use [Revisar uma candidata](#revisar-uma-candidata). |
 | Aprovar uma revisão e preparar um release | Siga o [guia de release](RELEASING.md). |
@@ -41,14 +41,16 @@ bun install --frozen-lockfile
 bun run forge build
 ```
 
-| Alvo | Compilação | Teste de carga |
-| --- | --- | --- |
-| Linux x64 | Docker | No contêiner |
-| Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows |
-| macOS Apple Silicon | Lazarus/FPC nativo | No macOS arm64 |
-| macOS Intel | Lazarus/FPC nativo | No macOS x64 |
+| Alvo | Compilação | Teste de carga | Em Releases |
+| --- | --- | --- | --- |
+| Linux x64 | Docker | No contêiner | Sim |
+| Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows | Não ([motivo](RELEASING.md#windows)) |
+| macOS Apple Silicon | Lazarus/FPC nativo | No macOS arm64 | Sim |
+| macOS Intel | Lazarus/FPC nativo | No macOS x64 | Sim |
 
 No Windows, teste as DLLs com `python scripts/smoke.py out windows-x86_64`. Os alvos Windows x86 e Linux arm64 ainda aguardam comprovação em build limpo e teste de carga nativo.
+
+O Docker fixa a imagem Debian por digest e os fontes do Free Pascal e do Lazarus por SHA-256; os pacotes apt seguem as atualizações do Debian 12. No macOS, o FPC e o OpenSSL vêm do Homebrew e acompanham a versão disponível no momento do build. Por isso, um build local pode diferir dos binários aprovados; o `manifest.json` registra a toolchain de cada alvo.
 
 Os módulos padrão são **BAL**, **PosPrinter**, **NFe** e **AbecsPinpad**. Todos usam ConsoleMT com multithreading, `cdecl` e sem interface gráfica. O módulo NFe usa `NOREPORT`. Para compilar só NFe no PowerShell, por exemplo:
 
@@ -77,7 +79,7 @@ out/
 
 Configure o seu aplicativo para carregar a biblioteca da arquitetura correspondente e preserve as dependências do pacote ao lado dela. No Linux, OpenSSL 3 e libxml2 vêm do sistema. O macOS usa a libxml2 do sistema e inclui OpenSSL no pacote.
 
-Cada pacote de release é um `.tar.gz` para um alvo. Extraia-o com `tar -xf <arquivo.tar.gz>`. O pacote contém `out/`, as informações dos fontes e os avisos de terceiros. Compare o SHA-256 do arquivo baixado com o valor publicado em `SHA256SUMS`.
+Cada pacote de release é um `.tar.gz` para um alvo. Extraia-o com `tar -xf <arquivo.tar.gz>`. O pacote contém `out/`, o `SOURCES.md`, as licenças e os avisos de terceiros. Os [fontes correspondentes](docs/fontes-correspondentes.md) explicam como obter os fontes de cada parte. Compare o SHA-256 do arquivo baixado com o valor publicado em `SHA256SUMS`.
 
 O Docker reutiliza o volume `acbrlib-forge-svn-cache-v1` para os fontes. Para recuperar espaço, remova esse volume quando nenhum build estiver em execução. Ele será recriado no próximo build.
 

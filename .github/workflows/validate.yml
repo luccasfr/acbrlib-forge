@@ -87,18 +87,21 @@ jobs:
           name: build-linux-x86_64
           path: candidates/linux/bundle.enc
           if-no-files-found: error
+          retention-days: 90
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: evidence-linux-x86_64
           path: candidates/linux/evidence.json
           if-no-files-found: error
+          retention-days: 90
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-windows-x86_64
           path: candidates/windows/bundle.enc
           if-no-files-found: error
+          retention-days: 90
 
   windows:
     if: github.event_name == 'workflow_dispatch'
@@ -129,6 +132,7 @@ jobs:
           name: evidence-windows-x86_64
           path: evidence.json
           if-no-files-found: error
+          retention-days: 90
 
   macos:
     needs: candidate-policy
@@ -162,11 +166,13 @@ jobs:
           name: build-${{ matrix.target }}
           path: candidates/macos/bundle.enc
           if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: evidence-${{ matrix.target }}
           path: candidates/macos/evidence.json
           if-no-files-found: error
+          retention-days: 90
 
   matrix-complete:
     if: always() && github.event_name == 'workflow_dispatch'
