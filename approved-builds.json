@@ -1,34 +1,50 @@
 [
   {
     "target": "linux-x86_64",
-    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
-    "archive": "841b65da8178399f758dcacc1122488bf93792ab77535f91a87cc0ba41580a97"
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "29383a053bcbaf2b77aebd338ef82ac9d4daefa59eec548dfd7774ec8964f691"
+  },
+  {
+    "target": "linux-i386",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "revision": 48681,
+    "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "8462dce2324821014ddea38921e60e36264c255082cb757802a7ccb7b88fbb12"
   },
   {
     "target": "windows-x86_64",
-    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
-    "archive": "d28280dac5d6e6d9533f62411d1365be8c61d476d5af6948e2840388e60865cd"
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "cedd6b5e92db6f278be50b8ace76f903a30524241cb422ab4ec3b9b307b97cee"
+  },
+  {
+    "target": "windows-i386",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "revision": 48681,
+    "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "aaa9d6427497b6a669e81ddef6b868aff18c1884a24ac364ecaa1881c1441d6f"
   },
   {
     "target": "macos-aarch64",
-    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
-    "archive": "4d65c608e45fb382750d945e446b3f564d6388c25d1ca572d9ba0231a980b54b"
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "bb2983445e606689c6058bcbef5abfbf45725d8e259df3c7b0d3118dbc587136"
   },
   {
     "target": "macos-x86_64",
-    "commit": "b41184de4e9711822d32092f3156ce7a980507df",
+    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "8cfe27951a289a598f152289b5a788f690bbaba8149fd6421f2dbe93edfccfb7",
-    "archive": "75e36abeb3babb44619d3f0f203cd46f062dc5608564abe8f09a4c929168c0ad"
+    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
+    "archive": "514ca279a3107a2224e4c552ceab4492927e3e3a8ea1c3fc7a3a29f098ac7310"
   }
 ]
