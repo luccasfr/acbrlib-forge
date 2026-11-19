@@ -1,50 +1,66 @@
 [
   {
     "target": "linux-x86_64",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "29383a053bcbaf2b77aebd338ef82ac9d4daefa59eec548dfd7774ec8964f691"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "c2158dc50da5219a0552d1204ef0f6ef0b884dd7f70322ab94342c550b505054"
   },
   {
     "target": "linux-i386",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "8462dce2324821014ddea38921e60e36264c255082cb757802a7ccb7b88fbb12"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "d688aa4d27827986bdda132564d6d6878104626ad5e711f5f391fcbe5a61cbc8"
   },
   {
     "target": "windows-x86_64",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "cedd6b5e92db6f278be50b8ace76f903a30524241cb422ab4ec3b9b307b97cee"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "bdc384551a8faf3eaf8d557306399ea4094aa4998009577bde7914beab50b8cd"
   },
   {
     "target": "windows-i386",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "aaa9d6427497b6a669e81ddef6b868aff18c1884a24ac364ecaa1881c1441d6f"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "f8b441b7975e915925640f2964eada4e221b6815420a27116d69acca50cb90f0"
   },
   {
     "target": "macos-aarch64",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "bb2983445e606689c6058bcbef5abfbf45725d8e259df3c7b0d3118dbc587136"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "c443d6a59c05bbc85fe113cbaa984320560efa359a41b73ee1a41923b9e27511"
   },
   {
     "target": "macos-x86_64",
-    "commit": "f638bf6c55baa7c7b940c4901091e02ec68c1a4d",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
     "revision": 48681,
     "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
-    "recipe": "aaf38c9ef0927bd064165c3a1745048dd82f6cbea43d69e6dad8a60a56e31ba8",
-    "archive": "514ca279a3107a2224e4c552ceab4492927e3e3a8ea1c3fc7a3a29f098ac7310"
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "7b5b248f6b682f827db9aee4427da4b5d310e79dac42b8dfd9a749335239a777"
+  },
+  {
+    "target": "android-arm64-v8a",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
+    "revision": 48681,
+    "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "90b47dfc935f0a02f5dbbfd0503fdb658f56cd160130386678f18fb65622df33"
+  },
+  {
+    "target": "android-armeabi-v7a",
+    "commit": "7f53a6315be98f91fdb11aa14406215c57b7611e",
+    "revision": 48681,
+    "patches": "d3804a108c3d5f37c01313eb7bc5993d10179c389d6995bbe3c189290ca9e219",
+    "recipe": "1a0fabc46582fcba936c75be63ca8b5eba670e224ced501a81b1e8aae8059b2b",
+    "archive": "21c4bd82970cf1e9bcccc336ab7cfa2797fbb84272e3471193d83a36a7c0eee1"
   }
 ]
