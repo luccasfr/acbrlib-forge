@@ -68,7 +68,7 @@ Os modos `android-arm64-v8a` e `android-armeabi-v7a` são os oficiais do ACBr, c
 | `libcrypto.so`, `libssl.so`, `legacy.so` | OpenSSL 3.5.9, compilado pelo Forge com o NDK |
 | `libxml2.so` | libxml2 2.15.4, compilada pelo Forge com o NDK, sem iconv (o Bionic só o oferece a partir da API 28) |
 
-A ACBrLib carrega o OpenSSL e a libxml2 pelo nome, e o Android os encontra entre as bibliotecas nativas do app. O provider `legacy` do OpenSSL só é carregado se o app apontar `OPENSSL_MODULES` para a pasta de bibliotecas nativas. O build confere em cada `.so` a arquitetura, as dependências (só o Bionic), o alinhamento e as funções exportadas. A CI carrega cada biblioteca num emulador Android e chama `Inicializar`, `Versao` e `Finalizar`.
+A ACBrLib carrega o OpenSSL e a libxml2 pelo nome, e o Android os encontra entre as bibliotecas nativas do app. O provider `legacy` do OpenSSL só é carregado se o app apontar `OPENSSL_MODULES` para a pasta de bibliotecas nativas. O build confere em cada `.so` a arquitetura, as dependências (só o Bionic), o alinhamento e as funções exportadas. A CI carrega cada biblioteca num emulador Android 11 (API 30) x86_64 e chama `Inicializar`, `Versao` e `Finalizar`; o código ARM roda pela tradução de ARM da imagem do emulador (`ndk_translation`), não em hardware ARM.
 
 ### Smart App Control no Windows 11
 
