@@ -32,6 +32,8 @@ A receita completa de build, incluindo scripts, imagem Docker e workflows, está
 | libxml2 (Windows, incluída no pacote) | Tarball oficial em [download.gnome.org/sources/libxml2](https://download.gnome.org/sources/libxml2/) | `windows-*Runtime.libxml2` |
 | libiconv (Windows, incluída no pacote) | Tarball oficial em [ftp.gnu.org/pub/gnu/libiconv](https://ftp.gnu.org/pub/gnu/libiconv/), com assinatura GPG do mantenedor | `windows-*Runtime.libiconv` |
 | mingw-w64 (compilador das DLLs do Windows) | Pacotes `gcc-mingw-w64-x86-64-win32` e `gcc-mingw-w64-i686-win32` do Debian 12 | `windows-*Runtime.mingw-w64-gcc` |
+| OpenSSL e libxml2 (Android, incluídos no pacote) | Os mesmos tarballs oficiais do Windows | `android-*Runtime.openssl` e `android-*Runtime.libxml2` |
+| Android NDK (compilador e sysroot do Bionic) | [developer.android.com/ndk](https://developer.android.com/ndk/downloads), com SHA-1 conferido no site e SHA-256 fixado | `android-*Runtime.ndk` e `android-*Runtime.api` |
 
 No Linux, OpenSSL 3 e libxml2 são dependências do sistema e não vão no pacote. No macOS, a libxml2 é a do sistema.
 

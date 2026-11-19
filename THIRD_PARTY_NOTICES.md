@@ -20,7 +20,8 @@ Os patches em `patches/shared.json` e `patches/darwin.ts` alteram arquivos do AC
 | Linux x64 e i386 | Schemas da NF-e | Distribuídos pelo ACBr na revisão declarada |
 | Windows x64 e i386 | `libcrypto-3-x64.dll` e `libssl-3-x64.dll` (x64) ou `libcrypto-3.dll` e `libssl-3.dll` (i386), além de `legacy.dll`, do OpenSSL 3; `libxml2.dll`; `libiconv-2.dll`; schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) · libxml2: [MIT](LICENSES/libxml2-MIT.txt) · libiconv: [LGPL 2.1 ou posterior](LICENSES/LGPL-2.1-or-later.txt) |
 | macOS (arm64 e x64) | `libcrypto.3.dylib`, `libssl.3.dylib` e `legacy.dylib` do OpenSSL 3, além dos schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) |
+| Android (arm64-v8a e armeabi-v7a) | `libcrypto.so`, `libssl.so` e `legacy.so` do OpenSSL 3; `libxml2.so`; schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) · libxml2: [MIT](LICENSES/libxml2-MIT.txt) |
 
 No Linux, OpenSSL 3 e libxml2 vêm do sistema. No macOS, a libxml2 vem do sistema.
 
-As DLLs do Windows são compiladas pelo Forge, com mingw-w64, a partir dos tarballs oficiais do OpenSSL, da libxml2 e da libiconv, fixados por SHA-256 em [`docker/Dockerfile`](docker/Dockerfile). A receita está em [`docker/windows-runtime.sh`](docker/windows-runtime.sh), e as versões ficam registradas no `manifest.json` de cada pacote.
+As DLLs do Windows são compiladas pelo Forge, com mingw-w64, e as bibliotecas do Android, com o NDK r30, a partir dos tarballs oficiais do OpenSSL, da libxml2 e da libiconv, fixados por SHA-256 em [`docker/Dockerfile`](docker/Dockerfile). As receitas estão em [`docker/windows-runtime.sh`](docker/windows-runtime.sh) e [`docker/android-runtime.sh`](docker/android-runtime.sh), e as versões ficam registradas no `manifest.json` de cada pacote.

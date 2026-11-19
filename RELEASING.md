@@ -14,6 +14,8 @@ Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-parti
 | Windows i386 | Sim | Sim |
 | macOS Apple Silicon | Sim | Sim |
 | macOS Intel | Sim | Sim |
+| Android arm64-v8a | Sim (emulador) | Sim |
+| Android armeabi-v7a | Sim (emulador) | Sim |
 
 A lista de alvos publicados fica em `RELEASE_TARGETS`, em [`src/review.ts`](src/review.ts). O workflow lê a lista dali e recusa pacotes de outros alvos.
 

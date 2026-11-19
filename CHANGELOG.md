@@ -2,6 +2,16 @@
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as versões seguem o [versionamento semântico](https://semver.org/lang/pt-BR/).
 
+## 0.4.0
+
+### Adicionado
+
+- Alvos Android arm64-v8a e armeabi-v7a na matriz e em Releases, com os modos oficiais do ACBr, a API 24 como mínima e páginas de 16 KB no arm64.
+- Compiladores cruzados do FPC 3.2.2 para `aarch64-android` e `arm-android` (ARMv7-A, VFPv3), com os binutils ARM do Debian 12 e o sysroot do NDK r30.
+- OpenSSL 3.5.9 e libxml2 2.15.4 para Android, compilados pelo Forge com o NDK a partir dos mesmos tarballs oficiais.
+- Checagem de ELF de cada biblioteca Android no build: arquitetura, dependências só do Bionic, alinhamento de 16 KB e funções exportadas.
+- Teste de carga num emulador Android na CI, com o programa `scripts/android-smoke.c`.
+
 ## 0.3.0
 
 ### Adicionado

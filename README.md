@@ -47,14 +47,28 @@ bun run forge build
 | Linux i386 | Compilação cruzada no mesmo Docker | Contêiner `linux/386` | Sim |
 | Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows | Sim |
 | Windows i386 | Compilação cruzada no mesmo Docker | Python x86 no Windows | Sim |
+| Android arm64-v8a | Compilação cruzada no mesmo Docker, com o sysroot do NDK | Emulador Android na CI | Sim |
+| Android armeabi-v7a | Compilação cruzada no mesmo Docker, com o sysroot do NDK | Emulador Android na CI | Sim |
 | macOS Apple Silicon | Lazarus/FPC nativo | No macOS arm64 | Sim |
 | macOS Intel | Lazarus/FPC nativo | No macOS x64 | Sim |
 
-O build padrão gera Linux x64 e Windows x64. Para incluir os alvos de 32 bits, defina `ACBR_TARGETS="linux-x86_64 linux-i386 windows-x86_64 windows-i386"`. No Windows, teste as DLLs com `python scripts/smoke.py out windows-x86_64`, ou com um Python x86 para `windows-i386`. O Android (arm64-v8a e armeabi-v7a) está em preparação.
+O build padrão gera Linux x64 e Windows x64. Para incluir os alvos de 32 bits, defina `ACBR_TARGETS="linux-x86_64 linux-i386 windows-x86_64 windows-i386"`. No Windows, teste as DLLs com `python scripts/smoke.py out windows-x86_64`, ou com um Python x86 para `windows-i386`. Para o Android, inclua `android-arm64-v8a` e `android-armeabi-v7a`.
 
 ### Modos derivados no Windows i386
 
 Na r48681, só a NFe tem modo de build oficial para Windows 32 bits (`win32-i386-MT`). Para BAL, PosPrinter e AbecsPinpad, o Forge usa o modo win64 do próprio projeto, com as mesmas opções (`-dMT -dNOGUI`), e troca apenas a CPU e o sistema (`--cpu=i386 --os=win32`); o arquivo passa de `*64.dll` para `*32.dll`. O manifesto marca essas bibliotecas com `"derivedMode": true` e registra o modo usado em `buildMode`. Como os demais alvos, elas usam `cdecl`.
+
+### Android
+
+Os modos `android-arm64-v8a` e `android-armeabi-v7a` são os oficiais do ACBr, com páginas de 16 KB no arm64, exigidas a partir do Android 15. O Forge compila a RTL do Free Pascal para Android e liga as bibliotecas com o sysroot do NDK r30, para a API 24 (Android 7.0) ou superior. O pacote de cada ABI segue o layout de `jniLibs`: copie o conteúdo de `out/android-<abi>/` para `src/main/jniLibs/<abi>/` do app.
+
+| Biblioteca | Origem |
+| --- | --- |
+| `libACBrLib<Módulo>.so` | ACBrLib ConsoleMT |
+| `libcrypto.so`, `libssl.so`, `legacy.so` | OpenSSL 3.5.9, compilado pelo Forge com o NDK |
+| `libxml2.so` | libxml2 2.15.4, compilada pelo Forge com o NDK, sem iconv (o Bionic só o oferece a partir da API 28) |
+
+A ACBrLib carrega o OpenSSL e a libxml2 pelo nome, e o Android os encontra entre as bibliotecas nativas do app. O provider `legacy` do OpenSSL só é carregado se o app apontar `OPENSSL_MODULES` para a pasta de bibliotecas nativas. O build confere em cada `.so` a arquitetura, as dependências (só o Bionic), o alinhamento e as funções exportadas. A CI carrega cada biblioteca num emulador Android e chama `Inicializar`, `Versao` e `Finalizar`.
 
 ### Smart App Control no Windows 11
 
