@@ -4,7 +4,8 @@
  * <PREFIXO>_Inicializar, _Versao e _Finalizar e imprime "ok" ou "FALHA".
  *
  * Uso: acbr-smoke <pasta-do-alvo> <biblioteca>:<PREFIXO> [...]
- * A pasta precisa estar em LD_LIBRARY_PATH para as dependências resolverem.
+ * O runtime é aberto pelo caminho completo e com RTLD_GLOBAL; o Bionic
+ * reaproveita essas cópias pelo soname quando a ACBrLib as carrega por nome.
  */
 #include <dlfcn.h>
 #include <stdio.h>

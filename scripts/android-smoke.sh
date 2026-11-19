@@ -21,8 +21,11 @@ for target in "$@"; do
   adb push "$smoke/$target/acbr-smoke" "$remote/$target/" > /dev/null
   adb shell chmod 755 "$remote/$target/acbr-smoke"
   echo "==> $target"
+  # Sem LD_LIBRARY_PATH: na tradução de ARM, o runner x86 nativo também o lê
+  # e tentaria carregar estas bibliotecas ARM. O acbr-smoke abre o runtime
+  # pelo caminho completo, e o Bionic reaproveita essas cópias pelo soname.
   # shellcheck disable=SC2086 # cada item de $libs é um argumento <biblioteca>:<prefixo>
-  if ! adb shell "cd $remote/$target && LD_LIBRARY_PATH=. ./acbr-smoke . $(echo $libs); echo exit=\$?" \
+  if ! adb shell "cd $remote/$target && ./acbr-smoke . $(echo $libs); echo exit=\$?" \
       | tee "/tmp/android-smoke-$target.log" | tr -d '\r'; then
     failures=$((failures + 1))
   fi
