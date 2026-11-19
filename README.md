@@ -44,11 +44,21 @@ bun run forge build
 | Alvo | Compilação | Teste de carga | Em Releases |
 | --- | --- | --- | --- |
 | Linux x64 | Docker | No contêiner | Sim |
+| Linux i386 | Compilação cruzada no mesmo Docker | Contêiner `linux/386` | Sim |
 | Windows x64 | Compilação cruzada no mesmo Docker | Python x64 no Windows | Sim |
+| Windows i386 | Compilação cruzada no mesmo Docker | Python x86 no Windows | Sim |
 | macOS Apple Silicon | Lazarus/FPC nativo | No macOS arm64 | Sim |
 | macOS Intel | Lazarus/FPC nativo | No macOS x64 | Sim |
 
-No Windows, teste as DLLs com `python scripts/smoke.py out windows-x86_64`. Os alvos Windows x86 e Linux arm64 ainda aguardam comprovação em build limpo e teste de carga nativo.
+O build padrão gera Linux x64 e Windows x64. Para incluir os alvos de 32 bits, defina `ACBR_TARGETS="linux-x86_64 linux-i386 windows-x86_64 windows-i386"`. No Windows, teste as DLLs com `python scripts/smoke.py out windows-x86_64`, ou com um Python x86 para `windows-i386`. O Android (arm64-v8a e armeabi-v7a) está em preparação.
+
+### Modos derivados no Windows i386
+
+Na r48681, só a NFe tem modo de build oficial para Windows 32 bits (`win32-i386-MT`). Para BAL, PosPrinter e AbecsPinpad, o Forge usa o modo win64 do próprio projeto, com as mesmas opções (`-dMT -dNOGUI`), e troca apenas a CPU e o sistema (`--cpu=i386 --os=win32`); o arquivo passa de `*64.dll` para `*32.dll`. O manifesto marca essas bibliotecas com `"derivedMode": true` e registra o modo usado em `buildMode`. Como os demais alvos, elas usam `cdecl`.
+
+### Smart App Control no Windows 11
+
+As DLLs não têm assinatura Authenticode. Com o Smart App Control ativo, o Windows pode recusar a carga de uma DLL sem reputação (`WinError 4551`, evento 3077 do Code Integrity). Confira a origem pelo `SHA256SUMS` e pela atestação de procedência; a assinatura de código está entre os próximos passos do projeto.
 
 O Docker fixa a imagem Debian por digest e os fontes do Free Pascal e do Lazarus por SHA-256; os pacotes apt seguem as atualizações do Debian 12. No macOS, o FPC e o OpenSSL vêm do Homebrew e acompanham a versão disponível no momento do build. Por isso, um build local pode diferir dos binários aprovados; o `manifest.json` registra a toolchain de cada alvo.
 

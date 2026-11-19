@@ -9,12 +9,12 @@ import { digest, verifyOutput } from "./manifest.ts";
 import { exec, svnRange } from "./svn.ts";
 
 /** Alvos compilados e testados nativamente em toda aprovação. */
-export const TARGETS = ["linux-x86_64", "windows-x86_64", "macos-aarch64", "macos-x86_64"] as const;
+export const TARGETS = ["linux-x86_64", "linux-i386", "windows-x86_64", "windows-i386", "macos-aarch64", "macos-x86_64"] as const;
 /**
  * Alvos publicados em Releases. Um alvo só entra aqui quando todas as
  * dependências do pacote têm fontes e receita comprovados (veja RELEASING.md).
  */
-export const RELEASE_TARGETS = ["linux-x86_64", "windows-x86_64", "macos-aarch64", "macos-x86_64"] as const satisfies
+export const RELEASE_TARGETS = ["linux-x86_64", "linux-i386", "windows-x86_64", "windows-i386", "macos-aarch64", "macos-x86_64"] as const satisfies
   readonly (typeof TARGETS)[number][];
 const REPOSITORY = "luccasfr/acbrlib-forge";
 const WORKFLOW = ".github/workflows/validate.yml";
@@ -40,7 +40,7 @@ export function assertMatrix(records: Evidence[], expected: Omit<Evidence, "targ
     records.filter((record) => record.target === target && record.commit === expected.commit &&
       record.revision === expected.revision && record.patches === expected.patches &&
       record.recipe === expected.recipe && /^[0-9a-f]{64}$/.test(record.archive)).length !== 1))
-    throw new Error("A matriz precisa dos quatro alvos nativos para a mesma revisão, patches e receita.");
+    throw new Error(`A matriz precisa de todos os alvos nativos (${TARGETS.join(", ")}) para a mesma revisão, patches e receita.`);
 }
 
 export function record(target: string, root: string, archive: string): Evidence {

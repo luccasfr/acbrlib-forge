@@ -75,37 +75,76 @@ jobs:
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun cli.ts build
+        env:
+          ACBR_TARGETS: linux-x86_64 linux-i386 windows-x86_64 windows-i386
+      # O contêiner do build só carrega bibliotecas x86_64; o i386 roda na
+      # mesma imagem Debian para linux/386, num kernel x86_64.
+      - name: Testar o Linux i386 num contêiner linux/386
+        run: |
+          docker run --rm --platform linux/386 -v "$PWD/out:/out:ro" -v "$PWD/scripts:/scripts:ro" \
+            debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc \
+            bash -c 'apt-get update -qq && apt-get install -y -qq --no-install-recommends python3 libssl3 libxml2 >/dev/null && python3 -I /scripts/smoke.py /out linux-i386'
       - if: github.event_name == 'workflow_dispatch'
         run: |
-          bun src/candidate.ts seal linux-x86_64 out candidates/linux
-          bun src/candidate.ts seal windows-x86_64 out candidates/windows
+          for target in linux-x86_64 linux-i386 windows-x86_64 windows-i386; do
+            bun src/candidate.ts seal "$target" out "candidates/$target"
+          done
         env:
           ACBRLIB_CANDIDATE_KEY: ${{ secrets.ACBRLIB_CANDIDATE_KEY }}
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build-linux-x86_64
-          path: candidates/linux/bundle.enc
+          path: candidates/linux-x86_64/bundle.enc
           if-no-files-found: error
           retention-days: 90
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: evidence-linux-x86_64
-          path: candidates/linux/evidence.json
+          path: candidates/linux-x86_64/evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-linux-i386
+          path: candidates/linux-i386/bundle.enc
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-linux-i386
+          path: candidates/linux-i386/evidence.json
           if-no-files-found: error
           retention-days: 90
       - if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build-windows-x86_64
-          path: candidates/windows/bundle.enc
+          path: candidates/windows-x86_64/bundle.enc
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-windows-i386
+          path: candidates/windows-i386/bundle.enc
           if-no-files-found: error
           retention-days: 90
 
   windows:
     if: github.event_name == 'workflow_dispatch'
     needs: docker
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows-x86_64
+            python: x64
+          - target: windows-i386
+            python: x86
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -116,20 +155,20 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: build-windows-x86_64
+          name: build-${{ matrix.target }}
           path: candidates/windows
-      - run: bun src/candidate.ts open windows-x86_64 candidates/windows/bundle.enc transport
+      - run: bun src/candidate.ts open "${{ matrix.target }}" candidates/windows/bundle.enc transport
         env:
           ACBRLIB_CANDIDATE_KEY: ${{ secrets.ACBRLIB_CANDIDATE_KEY }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-          architecture: x64
-      - run: python scripts/smoke.py transport/out windows-x86_64
-      - run: bun cli.ts record windows-x86_64 transport/out transport/candidate.tar.gz > evidence.json
+          architecture: ${{ matrix.python }}
+      - run: python scripts/smoke.py transport/out "${{ matrix.target }}"
+      - run: bun cli.ts record "${{ matrix.target }}" transport/out transport/candidate.tar.gz > evidence.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: evidence-windows-x86_64
+          name: evidence-${{ matrix.target }}
           path: evidence.json
           if-no-files-found: error
           retention-days: 90

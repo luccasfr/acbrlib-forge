@@ -29,12 +29,12 @@ it("binds the libraries, runtime files and schemas to the forge revision", () =>
   }
 });
 
-it("requires one matching evidence record for each of the four native targets", () => {
+it("requires one matching evidence record for each native target", () => {
   const inputs = { commit: "forge-sha", patches: "patch-sha", recipe: "recipe-sha", revision: 48681 };
   const records = TARGETS.map((target) => ({ ...inputs, target, archive: "a".repeat(64) }));
   expect(() => assertMatrix(records, inputs)).not.toThrow();
-  expect(() => assertMatrix(records.slice(1), inputs)).toThrow(/quatro alvos/);
-  expect(() => assertMatrix([...records.slice(1), records[1]], inputs)).toThrow(/quatro alvos/);
-  expect(() => assertMatrix(records, { ...inputs, patches: "other" })).toThrow(/quatro alvos/);
-  expect(() => assertMatrix([{ ...records[0], archive: "inválido" }, ...records.slice(1)], inputs)).toThrow(/quatro alvos/);
+  expect(() => assertMatrix(records.slice(1), inputs)).toThrow(/todos os alvos nativos/);
+  expect(() => assertMatrix([...records.slice(1), records[1]], inputs)).toThrow(/todos os alvos nativos/);
+  expect(() => assertMatrix(records, { ...inputs, patches: "other" })).toThrow(/todos os alvos nativos/);
+  expect(() => assertMatrix([{ ...records[0], archive: "inválido" }, ...records.slice(1)], inputs)).toThrow(/todos os alvos nativos/);
 });

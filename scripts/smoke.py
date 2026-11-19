@@ -69,11 +69,17 @@ def check_windows_runtime(directory: str) -> int:
 
 def main() -> int:
     out, target = os.path.abspath(sys.argv[1]), sys.argv[2]
+    # O tamanho do ponteiro identifica um Python de 32 bits mesmo num kernel
+    # ou Windows de 64 bits (contêiner linux/386, Python x86 no Windows).
     machine = platform.machine().lower()
-    architecture = "aarch64" if machine in {"arm64", "aarch64"} else machine.replace("amd64", "x86_64")
+    arm = machine in {"arm64", "aarch64"}
+    if ctypes.sizeof(ctypes.c_void_p) == 4:
+        architecture = "arm" if arm else "i386"
+    else:
+        architecture = "aarch64" if arm else "x86_64"
     system = "macos" if sys.platform == "darwin" else "windows" if sys.platform == "win32" else sys.platform
-    if target != f"{system}-{architecture}" or ctypes.sizeof(ctypes.c_void_p) != 8:
-        print(f"Smoke test requires native {target}; Python is {system}-{architecture}", file=sys.stderr)
+    if target != f"{system}-{architecture}":
+        print(f"O teste de carga exige {target} nativo; o Python é {system}-{architecture}", file=sys.stderr)
         return 2
     with open(os.path.join(out, "manifest.json"), encoding="utf-8") as file:
         entries = [e for e in json.load(file)["files"] if e["target"] == target]

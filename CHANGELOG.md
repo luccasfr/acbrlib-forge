@@ -2,6 +2,19 @@
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as versões seguem o [versionamento semântico](https://semver.org/lang/pt-BR/).
 
+## 0.3.0
+
+### Adicionado
+
+- Alvos Linux i386 e Windows i386 na matriz nativa e em Releases. O Linux i386 é testado num contêiner `linux/386`, e o Windows i386, com Python x86 no Windows.
+- Compiladores cruzados do FPC 3.2.2 para `i386-linux` e `i386-win32`, gerados do mesmo fonte fixado, com binutils i686 e a libc i386 do Debian 12.
+- DLLs de runtime do Windows i386 (`libcrypto-3.dll`, `libssl-3.dll`, `legacy.dll`, `libxml2.dll` e `libiconv-2.dll`), compiladas com mingw-w64 i686 a partir dos mesmos tarballs do x64.
+- Campos `buildMode` e `derivedMode` em cada biblioteca do manifesto.
+
+### Alterado
+
+- BAL, PosPrinter e AbecsPinpad não têm modo win32 oficial na r48681. No Windows i386, o Forge deriva esses módulos do modo win64 do próprio projeto e os marca com `derivedMode` (veja o README).
+
 ## 0.2.0
 
 ### Adicionado

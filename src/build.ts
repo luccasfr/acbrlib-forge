@@ -35,7 +35,7 @@ export function build(): void {
   const target = process.arch === "arm64" ? "macos-aarch64" : "macos-x86_64";
   const targets = process.env.ACBR_TARGETS?.trim().split(/\s+/) ??
     (native ? [target] : ["linux-x86_64", "windows-x86_64"]);
-  const allowed = native ? [target] : ["linux-x86_64", "windows-x86_64"];
+  const allowed = native ? [target] : ["linux-x86_64", "windows-x86_64", "linux-i386", "windows-i386"];
   if (new Set(targets).size !== targets.length || targets.some((item) => !allowed.includes(item)))
     throw new Error(`Alvo indisponível neste host. Alvos disponíveis: ${allowed.join(", ")}.`);
 

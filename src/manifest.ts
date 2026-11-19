@@ -8,6 +8,10 @@ export type Library = {
   target: string;
   file: string;
   sha256: string;
+  /** Modo de build do projeto ConsoleMT usado pelo Forge. */
+  buildMode?: string;
+  /** Verdadeiro quando o alvo não tem modo próprio e o Forge derivou outro (veja README). */
+  derivedMode?: boolean;
 };
 
 type Asset = { file: string; sha256: string };
