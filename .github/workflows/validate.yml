@@ -66,7 +66,7 @@ jobs:
         needs.candidate-policy.result == 'success'
       )
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -76,7 +76,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
       - run: bun cli.ts build
         env:
-          ACBR_TARGETS: linux-x86_64 linux-i386 windows-x86_64 windows-i386
+          ACBR_TARGETS: linux-x86_64 linux-i386 windows-x86_64 windows-i386 android-arm64-v8a android-armeabi-v7a
       # O contêiner do build só carrega bibliotecas x86_64; o i386 roda na
       # mesma imagem Debian para linux/386, num kernel x86_64.
       - name: Testar o Linux i386 num contêiner linux/386
@@ -84,9 +84,30 @@ jobs:
           docker run --rm --platform linux/386 -v "$PWD/out:/out:ro" -v "$PWD/scripts:/scripts:ro" \
             debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc \
             bash -c 'apt-get update -qq && apt-get install -y -qq --no-install-recommends python3 libssl3 libxml2 >/dev/null && python3 -I /scripts/smoke.py /out linux-i386'
+      # O Android roda neste mesmo job, sem transferir binários: emulador
+      # x86_64 com KVM, que executa ARM pela tradução embutida na imagem.
+      - name: Extrair o teste de carga do Android da imagem
+        run: |
+          container=$(docker create acbrlib-forge)
+          docker cp "$container:/opt/android-smoke" android-smoke
+          docker rm "$container"
+      - name: Habilitar o KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Testar o Android no emulador
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash scripts/android-smoke.sh out android-smoke android-arm64-v8a android-armeabi-v7a
       - if: github.event_name == 'workflow_dispatch'
         run: |
-          for target in linux-x86_64 linux-i386 windows-x86_64 windows-i386; do
+          for target in linux-x86_64 linux-i386 windows-x86_64 windows-i386 android-arm64-v8a android-armeabi-v7a; do
             bun src/candidate.ts seal "$target" out "candidates/$target"
           done
         env:
@@ -131,6 +152,34 @@ jobs:
         with:
           name: build-windows-i386
           path: candidates/windows-i386/bundle.enc
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-android-arm64-v8a
+          path: candidates/android-arm64-v8a/bundle.enc
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-android-arm64-v8a
+          path: candidates/android-arm64-v8a/evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-android-armeabi-v7a
+          path: candidates/android-armeabi-v7a/bundle.enc
+          if-no-files-found: error
+          retention-days: 90
+      - if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-android-armeabi-v7a
+          path: candidates/android-armeabi-v7a/evidence.json
           if-no-files-found: error
           retention-days: 90
 
