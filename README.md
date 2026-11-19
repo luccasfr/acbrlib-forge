@@ -7,7 +7,7 @@ Compile a ACBrLib ConsoleMT a partir de uma revisão do SVN oficial do ACBr, com
 
 Projeto independente para os [fontes públicos do Projeto ACBr](https://projetoacbr.com.br/fontes/).
 
-A r48681 passou na matriz dos seis alvos e tem aprovação assinada. [Resultado da matriz](https://github.com/luccasfr/acbrlib-forge/actions/runs/44534545211) · [Aprovação da r48681](changes/r48681-reaprovacao-ci44534545211.md)
+A r48681 passou na matriz dos oito alvos e tem aprovação assinada. [Resultado da matriz](https://github.com/luccasfr/acbrlib-forge/actions/runs/44555480289) · [Aprovação da r48681](changes/r48681-reaprovacao-ci44555480289.md)
 
 ## Por que existe
 
