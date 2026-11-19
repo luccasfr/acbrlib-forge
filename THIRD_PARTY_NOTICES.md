@@ -17,8 +17,8 @@ Os patches em `patches/shared.json` e `patches/darwin.ts` alteram arquivos do AC
 
 | Alvo | Arquivos de terceiros no pacote | Licença |
 | --- | --- | --- |
-| Linux x64 | Schemas da NF-e | Distribuídos pelo ACBr na revisão declarada |
-| Windows x64 | `libcrypto-3-x64.dll`, `libssl-3-x64.dll` e `legacy.dll` do OpenSSL 3; `libxml2.dll`; `libiconv-2.dll`; schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) · libxml2: [MIT](LICENSES/libxml2-MIT.txt) · libiconv: [LGPL 2.1 ou posterior](LICENSES/LGPL-2.1-or-later.txt) |
+| Linux x64 e i386 | Schemas da NF-e | Distribuídos pelo ACBr na revisão declarada |
+| Windows x64 e i386 | `libcrypto-3-x64.dll` e `libssl-3-x64.dll` (x64) ou `libcrypto-3.dll` e `libssl-3.dll` (i386), além de `legacy.dll`, do OpenSSL 3; `libxml2.dll`; `libiconv-2.dll`; schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) · libxml2: [MIT](LICENSES/libxml2-MIT.txt) · libiconv: [LGPL 2.1 ou posterior](LICENSES/LGPL-2.1-or-later.txt) |
 | macOS (arm64 e x64) | `libcrypto.3.dylib`, `libssl.3.dylib` e `legacy.dylib` do OpenSSL 3, além dos schemas da NF-e | OpenSSL: [Apache 2.0](LICENSES/OpenSSL-Apache-2.0.txt) |
 
 No Linux, OpenSSL 3 e libxml2 vêm do sistema. No macOS, a libxml2 vem do sistema.

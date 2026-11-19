@@ -9,9 +9,11 @@ Para compilar no seu hardware, siga o [guia de build](README.md#compilar-a-parti
 | Alvo | Matriz nativa | Release |
 | --- | --- | --- |
 | Linux x64 | Sim | Sim |
+| Linux i386 | Sim | Sim |
+| Windows x64 | Sim | Sim |
+| Windows i386 | Sim | Sim |
 | macOS Apple Silicon | Sim | Sim |
 | macOS Intel | Sim | Sim |
-| Windows x64 | Sim | Sim |
 
 A lista de alvos publicados fica em `RELEASE_TARGETS`, em [`src/review.ts`](src/review.ts). O workflow lê a lista dali e recusa pacotes de outros alvos.
 
@@ -76,7 +78,7 @@ gh attestation verify <arquivo.tar.gz> --repo luccasfr/acbrlib-forge
 
 ## Dependências do Windows
 
-O pacote do Windows não usa as DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DLLs/LibXml2`), cuja origem não é verificável: a `libiconv.dll` da r18175, por exemplo, não confere com nenhum build público. O estágio `windows-runtime` do [`docker/Dockerfile`](docker/Dockerfile) compila OpenSSL, libiconv e libxml2 com mingw-w64, a partir dos tarballs oficiais, e o build recusa o pacote quando:
+Os pacotes do Windows (x64 e i386) não usam as DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DLLs/LibXml2`), cuja origem não é verificável: a `libiconv.dll` da r18175, por exemplo, não confere com nenhum build público. O estágio `windows-runtime` do [`docker/Dockerfile`](docker/Dockerfile) compila OpenSSL, libiconv e libxml2 com mingw-w64, para x86_64 e i686,, a partir dos tarballs oficiais, e o build recusa o pacote quando:
 
 - uma DLL importa algo que não é do Windows nem do próprio pacote;
 - a `libxml2.dll` não exporta alguma função que o ACBr da revisão carrega por `GetProcAddress`.
@@ -84,7 +86,7 @@ O pacote do Windows não usa as DLLs prontas do SVN do ACBr (`DLLs/OpenSSL`, `DL
 Para atualizar uma dependência:
 
 1. Troque a versão e o SHA-256 no `Dockerfile`. Confira o hash com o publicado pelo projeto; no caso da libiconv, valide a assinatura GPG do tarball com o [keyring do GNU](https://ftp.gnu.org/gnu/gnu-keyring.gpg).
-2. Mantenha o OpenSSL na série 3.x: a ACBrLib procura `libcrypto-3-x64.dll` e `libssl-3-x64.dll`.
+2. Mantenha o OpenSSL na série 3.x: a ACBrLib procura `libcrypto-3-x64.dll` e `libssl-3-x64.dll` no x64, e `libcrypto-3.dll` e `libssl-3.dll` no i386.
 3. Atualize os textos em `LICENSES/` se a licença mudar e repita a matriz e a aprovação.
 
 ## Validação entre releases

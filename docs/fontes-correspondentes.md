@@ -28,10 +28,10 @@ A receita completa de build, incluindo scripts, imagem Docker e workflows, está
 | Free Pascal (RTL e pacotes) | [downloads.freepascal.org](https://downloads.freepascal.org/fpc/dist/) no Linux; Homebrew no macOS | Registrada no `manifest.json` do pacote |
 | Lazarus (LCL nogui e lazbuild) | Tag `lazarus_3_6` em [gitlab.com/freepascal.org/lazarus](https://gitlab.com/freepascal.org/lazarus/lazarus) | Registrada no `manifest.json` do pacote |
 | OpenSSL (macOS, incluído no pacote) | Fórmula `openssl@3` do Homebrew, construída a partir de [openssl.org](https://www.openssl.org/source/) | Registrada em `macos-*Toolchain.openssl` |
-| OpenSSL (Windows, incluído no pacote) | Tarball oficial em [github.com/openssl/openssl/releases](https://github.com/openssl/openssl/releases) | `windows-x86_64Runtime.openssl` |
-| libxml2 (Windows, incluída no pacote) | Tarball oficial em [download.gnome.org/sources/libxml2](https://download.gnome.org/sources/libxml2/) | `windows-x86_64Runtime.libxml2` |
-| libiconv (Windows, incluída no pacote) | Tarball oficial em [ftp.gnu.org/pub/gnu/libiconv](https://ftp.gnu.org/pub/gnu/libiconv/), com assinatura GPG do mantenedor | `windows-x86_64Runtime.libiconv` |
-| mingw-w64 (compilador das DLLs do Windows) | Pacote `gcc-mingw-w64-x86-64-win32` do Debian 12 | `windows-x86_64Runtime.mingw-w64-gcc` |
+| OpenSSL (Windows, incluído no pacote) | Tarball oficial em [github.com/openssl/openssl/releases](https://github.com/openssl/openssl/releases) | `windows-*Runtime.openssl` |
+| libxml2 (Windows, incluída no pacote) | Tarball oficial em [download.gnome.org/sources/libxml2](https://download.gnome.org/sources/libxml2/) | `windows-*Runtime.libxml2` |
+| libiconv (Windows, incluída no pacote) | Tarball oficial em [ftp.gnu.org/pub/gnu/libiconv](https://ftp.gnu.org/pub/gnu/libiconv/), com assinatura GPG do mantenedor | `windows-*Runtime.libiconv` |
+| mingw-w64 (compilador das DLLs do Windows) | Pacotes `gcc-mingw-w64-x86-64-win32` e `gcc-mingw-w64-i686-win32` do Debian 12 | `windows-*Runtime.mingw-w64-gcc` |
 
 No Linux, OpenSSL 3 e libxml2 são dependências do sistema e não vão no pacote. No macOS, a libxml2 é a do sistema.
 
