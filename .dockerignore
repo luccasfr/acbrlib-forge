@@ -6,3 +6,5 @@
 !scripts/
 !scripts/smoke.py
 !docker/windows-runtime.sh
+!docker/android-runtime.sh
+!scripts/android-smoke.c

@@ -2,7 +2,7 @@
 # Baixa a revisão fixada do ACBr e compila os módulos pedidos da ACBrLib.
 #   ACBR_REV      revisão do trunk2 (obrigatória)
 #   ACBR_MODULES  módulos em Projetos/ACBrLib/Fontes
-#   ACBR_TARGETS  linux-x86_64, linux-i386, windows-x86_64 e/ou windows-i386 (padrão: os x86_64)
+#   ACBR_TARGETS  linux-x86_64, linux-i386, windows-x86_64, windows-i386, android-arm64-v8a e/ou android-armeabi-v7a (padrão: os x86_64)
 # Aplica os patches compartilhados (/opt/acbrlib/patches.json, montado pelo
 # build.ts) e registra o SHA-256 da lista no manifesto.
 set -euo pipefail
@@ -64,18 +64,53 @@ case " $ACBR_MODULES " in
       "$ACBR_HOME/Fontes/ACBrLibXML2/ACBrLibXml2Ext.pas" | grep -oE "'[A-Za-z0-9_]+'" | tr -d "'" | sort -u)
     [ -n "$required" ] || { echo "nenhuma função da libxml2 encontrada no ACBr" >&2; exit 1; }
     for target in $ACBR_TARGETS; do
-      case "$target" in windows-*) ;; *) continue ;; esac
-      mkdir -p "$OUT/$target"
-      cp /opt/windows-runtime/"$target"/*.dll "$OUT/$target/"
       # Toda função que a ACBrLib busca por GetProcAddress na libxml2
-      # precisa estar exportada pela DLL compilada.
-      exports=$(objdump -p "/opt/windows-runtime/$target/libxml2.dll" \
-        | sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' | awk '{print $NF}' | sort -u)
+      # precisa estar exportada pela biblioteca compilada.
+      case "$target" in
+        windows-*)
+          mkdir -p "$OUT/$target"
+          cp /opt/windows-runtime/"$target"/*.dll "$OUT/$target/"
+          exports=$(objdump -p "/opt/windows-runtime/$target/libxml2.dll" \
+            | sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' | awk '{print $NF}' | sort -u) ;;
+        android-*)
+          mkdir -p "$OUT/$target"
+          cp /opt/android-runtime/"$target"/*.so "$OUT/$target/"
+          exports=$(readelf -W --dyn-syms "/opt/android-runtime/$target/libxml2.so" \
+            | awk '$7 != "UND" {print $8}' | sed 's/@.*//' | sort -u) ;;
+        *) continue ;;
+      esac
       missing=$(comm -23 <(echo "$required") <(echo "$exports"))
-      [ -z "$missing" ] || { echo "$target/libxml2.dll não exporta: $missing" >&2; exit 1; }
+      [ -z "$missing" ] || { echo "$target/libxml2 não exporta: $missing" >&2; exit 1; }
     done
     ;;
 esac
+
+# As bibliotecas Android não carregam neste contêiner (o emulador da CI faz o
+# teste de carga); aqui se confere o ELF: arquitetura, dependências só do
+# Bionic, alinhamento de 16 KB no arm64 e as funções exportadas.
+check_android() {
+  local file=$1 target=$2 prefix=$3 machine needed align symbols
+  machine=$(readelf -h "$file" | awk -F: '/Machine/ {gsub(/^ +/, "", $2); print $2}')
+  case "$target:$machine" in
+    android-arm64-v8a:AArch64|android-armeabi-v7a:ARM) ;;
+    *) echo "$file: arquitetura $machine inesperada para $target" >&2; exit 1 ;;
+  esac
+  for needed in $(readelf -d "$file" | sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p'); do
+    case "$needed" in
+      libc.so|libdl.so|libm.so|liblog.so) ;;
+      *) echo "$file depende de $needed, fora do Bionic" >&2; exit 1 ;;
+    esac
+  done
+  if [ "$target" = android-arm64-v8a ]; then
+    for align in $(readelf -lW "$file" | awk '$1 == "LOAD" {print $NF}'); do
+      (( align >= 16384 )) || { echo "$file não está alinhada em 16 KB" >&2; exit 1; }
+    done
+  fi
+  symbols=$(readelf -W --dyn-syms "$file" | awk '{print $8}')
+  for symbol in Inicializar Versao Finalizar; do
+    grep -qx "${prefix}_$symbol" <<< "$symbols" || { echo "$file não exporta ${prefix}_$symbol" >&2; exit 1; }
+  done
+}
 
 entries=()
 for target in $ACBR_TARGETS; do
@@ -84,10 +119,12 @@ for target in $ACBR_TARGETS; do
   # mesmas opções, só a CPU e o SO mudam, e o arquivo troca 64 por 32.
   fallback=
   case "$target" in
-    linux-x86_64) pattern='^linux-x86_64(-mt)?$'; os=linux; cpu=x86_64; bin=Linux; ext=so ;;
-    linux-i386) pattern='^linux-i386(-mt)?$'; os=linux; cpu=i386; bin=Linux; ext=so ;;
-    windows-x86_64) pattern='^win64-x86_64-mt$'; os=win64; cpu=x86_64; bin=Windows; ext=dll ;;
-    windows-i386) pattern='^win32-i386-mt$'; os=win32; cpu=i386; bin=Windows; ext=dll; fallback='^win64-x86_64-mt$' ;;
+    linux-x86_64) pattern='^linux-x86_64(-mt)?$'; os=linux; cpu=x86_64; bin=Linux/CONSOLE-MT; ext=so ;;
+    linux-i386) pattern='^linux-i386(-mt)?$'; os=linux; cpu=i386; bin=Linux/CONSOLE-MT; ext=so ;;
+    windows-x86_64) pattern='^win64-x86_64-mt$'; os=win64; cpu=x86_64; bin=Windows/CONSOLE-MT; ext=dll ;;
+    windows-i386) pattern='^win32-i386-mt$'; os=win32; cpu=i386; bin=Windows/CONSOLE-MT; ext=dll; fallback='^win64-x86_64-mt$' ;;
+    android-arm64-v8a) pattern='^android-arm64-v8a$'; os=android; cpu=aarch64; bin=Android/jniLibs/arm64-v8a; ext=so ;;
+    android-armeabi-v7a) pattern='^android-armeabi-v7a$'; os=android; cpu=arm; bin=Android/jniLibs/armeabi-v7a; ext=so ;;
     *) echo "alvo desconhecido: $target" >&2; exit 2 ;;
   esac
   mkdir -p "$OUT/$target"
@@ -106,12 +143,13 @@ for target in $ACBR_TARGETS; do
     prefix=$(grep -oE '[A-Za-z]+_Inicializar\b' "$dir/ACBrLib$module.lpr" | head -1)
     prefix=${prefix%_Inicializar}
     echo "==> $module ($target, modo $mode$([ "$derived" = true ] && echo ", derivado para $os/$cpu"))"
-    rm -rf "$dir/bin/$bin/CONSOLE-MT"
+    rm -rf "${dir:?}/bin/$bin"
     log="$OUT/$target/$module.log"
     "$LAZARUS_DIR/lazbuild" --quiet --lazarusdir="$LAZARUS_DIR" --build-all \
       --ws=nogui --os="$os" --cpu="$cpu" --build-mode="$mode" "$project" > "$log" 2>&1 \
       || { grep -E 'Error|Fatal' "$log" | tail -30; exit 1; }
-    for file in "$dir/bin/$bin/CONSOLE-MT"/*."$ext"; do
+    for file in "$dir/bin/$bin"/*."$ext"; do
+      case "$target" in android-*) check_android "$file" "$target" "$prefix" ;; esac
       name=$(basename "$file")
       [ "$derived" = true ] && name=${name/64./32.}
       cp "$file" "$OUT/$target/$name"
@@ -131,6 +169,7 @@ done
   for target in $ACBR_TARGETS; do
     case "$target" in
       windows-*) echo "  \"${target}Runtime\": $(cat "/opt/windows-runtime/$target/versions.json")," ;;
+      android-*) echo "  \"${target}Runtime\": $(cat "/opt/android-runtime/$target/versions.json")," ;;
     esac
   done
   echo "  \"variant\": \"ConsoleMT\","
