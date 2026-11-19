@@ -21,6 +21,9 @@ RUN apt-get update \
         gcc-mingw-w64-x86-64-win32=12.2.0-14+deb12u1+25.2+b1 \
         binutils-mingw-w64-x86-64=2.40-2+10.4 \
         mingw-w64-x86-64-dev=10.0.0-3 \
+        gcc-mingw-w64-i686-win32=12.2.0-14+deb12u1+25.2+b1 \
+        binutils-mingw-w64-i686=2.40-2+10.4 \
+        mingw-w64-i686-dev=10.0.0-3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY docker/windows-runtime.sh /opt/windows-runtime.sh
@@ -39,22 +42,29 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates curl subversion make binutils python3 fpc=3.2.2+dfsg-20 libssl3 libxml2 util-linux \
+        binutils-i686-linux-gnu=2.40-2 libc6-dev-i386-cross=2.36-8cross1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Unidades RTL/FCL para win64, a partir dos fontes oficiais (o pacote
-# fpc-source do Debian não traz os Makefiles). O FPC usa montador e linker
-# internos nesse alvo, então não é preciso binutils cruzado.
+# Compiladores e unidades RTL/FCL cruzados, a partir dos fontes oficiais (o
+# pacote fpc-source do Debian não traz os Makefiles): win64, win32 e
+# linux-i386. Windows usa montador e linker internos do FPC; o Linux i386 usa
+# os binutils i686 do Debian e a libc i386 de /usr/i686-linux-gnu.
 RUN curl -fsSL -o /tmp/fpc.tar.gz \
         https://downloads.freepascal.org/fpc/dist/${FPC_VERSION}/source/fpc-${FPC_VERSION}.source.tar.gz \
     && echo "${FPC_SOURCE_SHA256}  /tmp/fpc.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/fpc.tar.gz -C /tmp \
-    && (make -C /tmp/fpc-${FPC_VERSION} clean crossall crossinstall \
-        OS_TARGET=win64 CPU_TARGET=x86_64 INSTALL_PREFIX=${FPC_CROSS_PREFIX} \
-        > /tmp/fpc-cross.log 2>&1 || (tail -50 /tmp/fpc-cross.log; exit 1)) \
+    && for target in win64:x86_64: win32:i386: linux:i386:i686-linux-gnu-; do \
+        os=${target%%:*}; rest=${target#*:}; cpu=${rest%%:*}; prefix=${rest#*:}; \
+        make -C /tmp/fpc-${FPC_VERSION} clean crossall crossinstall \
+            OS_TARGET=$os CPU_TARGET=$cpu BINUTILSPREFIX=$prefix INSTALL_PREFIX=${FPC_CROSS_PREFIX} \
+            > /tmp/fpc-cross.log 2>&1 || { tail -50 /tmp/fpc-cross.log; exit 1; }; \
+    done \
+    && ln -s ${FPC_CROSS_PREFIX}/lib/fpc/${FPC_VERSION}/ppcross386 /usr/bin/ppcross386 \
     && rm -rf /tmp/fpc.tar.gz /tmp/fpc-${FPC_VERSION} /tmp/fpc-cross.log \
     && printf '%s\n' \
         "-Fu${FPC_CROSS_PREFIX}/lib/fpc/\$fpcversion/units/\$fpctarget" \
         "-Fu${FPC_CROSS_PREFIX}/lib/fpc/\$fpcversion/units/\$fpctarget/*" \
+        "#IFDEF CPUI386" "#IFDEF LINUX" "-XPi686-linux-gnu-" "-Fl/usr/i686-linux-gnu/lib" "#ENDIF" "#ENDIF" \
         >> /etc/fpc.cfg
 
 # lazbuild a partir dos fontes oficiais: os pacotes Lazarus do Debian não

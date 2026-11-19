@@ -2,7 +2,7 @@
 # Baixa a revisão fixada do ACBr e compila os módulos pedidos da ACBrLib.
 #   ACBR_REV      revisão do trunk2 (obrigatória)
 #   ACBR_MODULES  módulos em Projetos/ACBrLib/Fontes
-#   ACBR_TARGETS  linux-x86_64 e/ou windows-x86_64 (padrão: ambos)
+#   ACBR_TARGETS  linux-x86_64, linux-i386, windows-x86_64 e/ou windows-i386 (padrão: os x86_64)
 # Aplica os patches compartilhados (/opt/acbrlib/patches.json, montado pelo
 # build.ts) e registra o SHA-256 da lista no manifesto.
 set -euo pipefail
@@ -60,30 +60,34 @@ svn_export() {
 case " $ACBR_MODULES " in
   *" NFe "*)
     svn_export Exemplos/ACBrDFe/Schemas/NFe "$OUT/schemas/NFe"
-    case " $ACBR_TARGETS " in
-      *" windows-x86_64 "*)
-        mkdir -p "$OUT/windows-x86_64"
-        cp /opt/windows-runtime/*.dll "$OUT/windows-x86_64/"
-        # Toda função que a ACBrLib busca por GetProcAddress na libxml2
-        # precisa estar exportada pela DLL compilada.
-        exports=$(objdump -p /opt/windows-runtime/libxml2.dll \
-          | sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' | awk '{print $NF}')
-        required=$(grep -oE "GetProcAddr[A-Za-z]*\([^,]+, *'[A-Za-z0-9_]+'" \
-          "$ACBR_HOME/Fontes/ACBrLibXML2/ACBrLibXml2Ext.pas" | grep -oE "'[A-Za-z0-9_]+'" | tr -d "'" | sort -u)
-        [ -n "$required" ] || { echo "nenhuma função da libxml2 encontrada no ACBr" >&2; exit 1; }
-        missing=$(comm -23 <(echo "$required") <(echo "$exports" | sort -u))
-        [ -z "$missing" ] || { echo "libxml2.dll não exporta: $missing" >&2; exit 1; }
-        ;;
-    esac
+    required=$(grep -oE "GetProcAddr[A-Za-z]*\([^,]+, *'[A-Za-z0-9_]+'" \
+      "$ACBR_HOME/Fontes/ACBrLibXML2/ACBrLibXml2Ext.pas" | grep -oE "'[A-Za-z0-9_]+'" | tr -d "'" | sort -u)
+    [ -n "$required" ] || { echo "nenhuma função da libxml2 encontrada no ACBr" >&2; exit 1; }
+    for target in $ACBR_TARGETS; do
+      case "$target" in windows-*) ;; *) continue ;; esac
+      mkdir -p "$OUT/$target"
+      cp /opt/windows-runtime/"$target"/*.dll "$OUT/$target/"
+      # Toda função que a ACBrLib busca por GetProcAddress na libxml2
+      # precisa estar exportada pela DLL compilada.
+      exports=$(objdump -p "/opt/windows-runtime/$target/libxml2.dll" \
+        | sed -n '/\[Ordinal\/Name Pointer\] Table/,/^$/p' | awk '{print $NF}' | sort -u)
+      missing=$(comm -23 <(echo "$required") <(echo "$exports"))
+      [ -z "$missing" ] || { echo "$target/libxml2.dll não exporta: $missing" >&2; exit 1; }
+    done
     ;;
 esac
 
 entries=()
 for target in $ACBR_TARGETS; do
-  # Os nomes dos modos variam entre módulos (caixa e sufixo -MT).
+  # Os nomes dos modos variam entre módulos (caixa e sufixo -MT). Sem modo
+  # win32 oficial, o Windows i386 deriva do modo win64 do próprio projeto:
+  # mesmas opções, só a CPU e o SO mudam, e o arquivo troca 64 por 32.
+  fallback=
   case "$target" in
-    linux-x86_64) pattern='^linux-x86_64(-mt)?$'; os=linux; bin=Linux; ext=so ;;
-    windows-x86_64) pattern='^win64-x86_64-mt$'; os=win64; bin=Windows; ext=dll ;;
+    linux-x86_64) pattern='^linux-x86_64(-mt)?$'; os=linux; cpu=x86_64; bin=Linux; ext=so ;;
+    linux-i386) pattern='^linux-i386(-mt)?$'; os=linux; cpu=i386; bin=Linux; ext=so ;;
+    windows-x86_64) pattern='^win64-x86_64-mt$'; os=win64; cpu=x86_64; bin=Windows; ext=dll ;;
+    windows-i386) pattern='^win32-i386-mt$'; os=win32; cpu=i386; bin=Windows; ext=dll; fallback='^win64-x86_64-mt$' ;;
     *) echo "alvo desconhecido: $target" >&2; exit 2 ;;
   esac
   mkdir -p "$OUT/$target"
@@ -91,22 +95,28 @@ for target in $ACBR_TARGETS; do
     dir="$ACBR_HOME/Projetos/ACBrLib/Fontes/$module"
     project="$dir/ACBrLib${module}ConsoleMT.lpi"
     [ -f "$project" ] || { echo "$module não tem projeto ConsoleMT" >&2; exit 2; }
-    mode=$(grep -oE '<Item[0-9]+ Name="[^"]+"' "$project" | cut -d'"' -f2 \
-      | grep -iE "$pattern" | head -1)
+    modes=$(grep -oE '<Item[0-9]+ Name="[^"]+"' "$project" | cut -d'"' -f2)
+    mode=$(echo "$modes" | grep -iE "$pattern" | head -1 || true)
+    derived=false
+    if [ -z "$mode" ] && [ -n "$fallback" ]; then
+      mode=$(echo "$modes" | grep -iE "$fallback" | head -1 || true)
+      derived=true
+    fi
     [ -n "$mode" ] || { echo "$module não tem modo para $target" >&2; exit 2; }
     prefix=$(grep -oE '[A-Za-z]+_Inicializar\b' "$dir/ACBrLib$module.lpr" | head -1)
     prefix=${prefix%_Inicializar}
-    echo "==> $module ($target, modo $mode)"
+    echo "==> $module ($target, modo $mode$([ "$derived" = true ] && echo ", derivado para $os/$cpu"))"
     rm -rf "$dir/bin/$bin/CONSOLE-MT"
     log="$OUT/$target/$module.log"
     "$LAZARUS_DIR/lazbuild" --quiet --lazarusdir="$LAZARUS_DIR" --build-all \
-      --ws=nogui --os="$os" --cpu=x86_64 --build-mode="$mode" "$project" > "$log" 2>&1 \
+      --ws=nogui --os="$os" --cpu="$cpu" --build-mode="$mode" "$project" > "$log" 2>&1 \
       || { grep -E 'Error|Fatal' "$log" | tail -30; exit 1; }
     for file in "$dir/bin/$bin/CONSOLE-MT"/*."$ext"; do
-      cp "$file" "$OUT/$target/"
       name=$(basename "$file")
+      [ "$derived" = true ] && name=${name/64./32.}
+      cp "$file" "$OUT/$target/$name"
       sum=$(sha256sum "$file" | cut -d' ' -f1)
-      entries+=("    {\"module\": \"$module\", \"prefix\": \"$prefix\", \"target\": \"$target\", \"file\": \"$target/$name\", \"sha256\": \"$sum\"}")
+      entries+=("    {\"module\": \"$module\", \"prefix\": \"$prefix\", \"target\": \"$target\", \"file\": \"$target/$name\", \"sha256\": \"$sum\", \"buildMode\": \"$mode\", \"derivedMode\": $derived}")
     done
   done
 done
@@ -118,9 +128,11 @@ done
   echo "  \"patches\": \"$(sha256sum "$PATCHES" | cut -d' ' -f1)\","
   echo "  \"fpc\": \"$(fpc -iV)\","
   echo "  \"lazarus\": \"$("$LAZARUS_DIR/lazbuild" --version | tail -1)\","
-  case " $ACBR_TARGETS " in
-    *" windows-x86_64 "*) echo "  \"windows-x86_64Runtime\": $(cat /opt/windows-runtime/versions.json)," ;;
-  esac
+  for target in $ACBR_TARGETS; do
+    case "$target" in
+      windows-*) echo "  \"${target}Runtime\": $(cat "/opt/windows-runtime/$target/versions.json")," ;;
+    esac
+  done
   echo "  \"variant\": \"ConsoleMT\","
   echo "  \"files\": ["
   (IFS=$'\n'; echo "${entries[*]}" | sed '$!s/$/,/')
@@ -129,7 +141,8 @@ done
 } > "$OUT/manifest.json"
 
 cat "$OUT/manifest.json"
-# Só as bibliotecas Linux podem ser carregadas dentro do contêiner.
+# Dentro do contêiner só as bibliotecas Linux x86_64 podem ser carregadas; o
+# i386 é testado num contêiner linux/386 e o Windows, em Windows.
 case " $ACBR_TARGETS " in
   *" linux-x86_64 "*) python3 /opt/acbrlib/smoke.py "$OUT" linux-x86_64 ;;
 esac
